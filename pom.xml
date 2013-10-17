@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+  
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.jboss.netty</groupId>
+  <artifactId>netty-xnio-transport</artifactId>
+  <name>netty-xnio-transport</name>
+  <version>0.1.0-SNAPSHOT</version>
+  <inceptionYear>2013</inceptionYear>
+  <packaging>jar</packaging>
+  <url>https://github.com/normanmaurer/netty-xnio-transport</url>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>norman.maurer</id>
+      <name>Norman Maurer</name>
+      <email>nmaurer@redhat.com</email>
+    </developer>
+  </developers>
+  
+  <prerequisites>
+    <maven>3.0.2</maven>
+  </prerequisites>
+
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>http://repository.apache.org/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <optimize>true</optimize>
+          <source>${target.jdk}</source>
+          <target>${target.jdk}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+    
+  <dependencies>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+      <version>${netty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>${netty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.xnio</groupId>
+      <artifactId>xnio-api</artifactId>
+      <version>${xnio.version}</version>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <target.jdk>1.7</target.jdk>
+    <netty.version>4.0.10.Final</netty.version>
+    <xnio.version>3.2.0.Beta1-SNAPSHOT</xnio.version>
+    <junit.version>4.10</junit.version>
+  </properties>
+</project>
