@@ -17,8 +17,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
-    private final XnioIoThread executor;
+final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
+    final XnioIoThread executor;
     public XnioEventLoop(XnioIoThread executor) {
         this.executor = executor;
     }
@@ -29,7 +29,7 @@ public final class XnioEventLoop extends AbstractEventExecutor implements EventL
 
     @Override
     public EventLoopGroup parent() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return this;
     }
 
     @Override
@@ -59,7 +59,7 @@ public final class XnioEventLoop extends AbstractEventExecutor implements EventL
 
     @Override
     public Future<?> terminationFuture() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new UnsupportedOperationException();
     }
 
     @Override
