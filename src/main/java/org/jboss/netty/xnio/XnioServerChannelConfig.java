@@ -12,9 +12,9 @@ import org.xnio.OptionMap;
 
 import java.util.Map;
 
-public class XnioChannelConfig extends DefaultChannelConfig implements ServerSocketChannelConfig {
+public class XnioServerChannelConfig extends DefaultChannelConfig implements ServerSocketChannelConfig {
     private final OptionMap.Builder options = OptionMap.builder();
-    public XnioChannelConfig(Channel channel) {
+    public XnioServerChannelConfig(Channel channel) {
         super(channel);    //To change body of overridden methods use File | Settings | File Templates.
     }
 

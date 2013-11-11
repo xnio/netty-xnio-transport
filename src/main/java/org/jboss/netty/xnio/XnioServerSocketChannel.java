@@ -16,7 +16,7 @@ import java.net.SocketAddress;
 
 public final class XnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
     private volatile AcceptingChannel channel;
-    private final XnioChannelConfig config = new XnioChannelConfig(this);
+    private final XnioServerChannelConfig config = new XnioServerChannelConfig(this);
 
     @Override
     protected boolean isCompatible(EventLoop loop) {
