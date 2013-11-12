@@ -24,64 +24,92 @@ import io.netty.channel.socket.ServerSocketChannelConfig;
 import org.xnio.ChannelListener;
 import org.xnio.Option;
 import org.xnio.StreamConnection;
+import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 
- abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
-     private final XnioServerSocketChannelConfig config = new XnioServerSocketChannelConfig(this);
+/**
+ * {@link ServerSocketChannel} base class for our XNIO transport
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
+abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
+    private final XnioServerSocketChannelConfig config = new XnioServerSocketChannelConfig(this);
 
-     @Override
-     protected boolean isCompatible(EventLoop loop) {
-         return loop instanceof XnioEventLoop;
-     }
+    @Override
+    protected boolean isCompatible(EventLoop loop) {
+        return loop instanceof XnioEventLoop;
+    }
 
-     @Override
-     public boolean isActive() {
-         return isOpen();
-     }
+    @Override
+    public boolean isActive() {
+        return isOpen();
+    }
 
-     @Override
-     public InetSocketAddress localAddress() {
-         return (InetSocketAddress) super.localAddress();
-     }
+    @Override
+    public InetSocketAddress localAddress() {
+        return (InetSocketAddress) super.localAddress();
+    }
 
-     @Override
-     public InetSocketAddress remoteAddress() {
-         return (InetSocketAddress) super.remoteAddress();
-     }
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return (InetSocketAddress) super.remoteAddress();
+    }
 
-     @Override
-     public ServerSocketChannelConfig config() {
-         return config;
-     }
+    @Override
+    public ServerSocketChannelConfig config() {
+        return config;
+    }
 
-     <T> T getOption(Option<T> option) {
-         try {
-             return getOption0(option);
-         } catch (IOException e) {
-             throw new ChannelException(e);
-         }
-     }
+    <T> T getOption(Option<T> option) {
+        try {
+            return getOption0(option);
+        } catch (IOException e) {
+            throw new ChannelException(e);
+        }
+    }
 
-     <T> void setOption(Option<T> option, T value) {
-         try {
-             setOption0(option, value);
-         } catch (IOException e) {
-             throw new ChannelException(e);
-         }
-     }
+    <T> void setOption(Option<T> option, T value) {
+        try {
+            setOption0(option, value);
+        } catch (IOException e) {
+            throw new ChannelException(e);
+        }
+    }
 
-     protected abstract <T> void setOption0(Option<T> option, T value) throws IOException;
+    /**
+     * Set the given {@link Option} to the given value.
+     */
+    protected abstract <T> void setOption0(Option<T> option, T value) throws IOException;
 
-     protected abstract <T> T getOption0(Option<T> option) throws IOException;
 
-     final class AcceptListener implements ChannelListener<StreamConnection> {
-         @Override
-         public void handleEvent(StreamConnection channel) {
-             pipeline().fireChannelRead(new WrappingXnioSocketChannel(AbstractXnioServerSocketChannel.this, channel));
-             pipeline().fireChannelReadComplete();
-         }
-     }
+    /**
+     * Return the value for the given {@link Option}.
+     */
+    protected abstract <T> T getOption0(Option<T> option) throws IOException;
+
+    /**
+     * {@link ChannelListener} implementation which takes care of accept connections and fire them through the
+     * {@link io.netty.channel.ChannelPipeline}.
+     */
+    final class AcceptListener implements ChannelListener<AcceptingChannel<StreamConnection>> {
+        @Override
+        public void handleEvent(AcceptingChannel<StreamConnection> channel) {
+            try {
+                int messagesToRead = config().getMaxMessagesPerRead();
+                for (int i = 0; i < messagesToRead; i++) {
+                    StreamConnection conn = channel.accept();
+                    if (conn == null) {
+                        break;
+                    }
+                    pipeline().fireChannelRead(new WrappingXnioSocketChannel(AbstractXnioServerSocketChannel.this, conn));
+                }
+            } catch (Throwable cause) {
+                pipeline().fireExceptionCaught(cause);
+            }
+            pipeline().fireChannelReadComplete();
+        }
+    }
 }

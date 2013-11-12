@@ -17,21 +17,23 @@
 package org.jboss.netty.xnio;
 
 import io.netty.channel.EventLoop;
-import org.xnio.ChannelListener;
-import org.xnio.IoFuture;
 import org.xnio.Option;
 import org.xnio.OptionMap;
-import org.xnio.StreamConnection;
 import org.xnio.channels.AcceptingChannel;
-import org.xnio.channels.BoundChannel;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
+/**
+ * {@link io.netty.channel.socket.ServerSocketChannel} which uses XNIO.
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
 public final class XnioServerSocketChannel extends AbstractXnioServerSocketChannel {
     private volatile AcceptingChannel channel;
     private final OptionMap.Builder options = OptionMap.builder();
+    private volatile EventLoop eventLoop;
 
     @Override
     protected boolean isCompatible(EventLoop loop) {
@@ -39,13 +41,20 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     }
 
     @Override
-    protected void doBind(SocketAddress localAddress) throws Exception {
-        IoFuture<StreamConnection> future = ((XnioEventLoop) eventLoop()).executor.acceptStreamConnection(
-                localAddress, new AcceptListener(), new BoundListener(), options.getMap());
-        IOException exception = future.getException();
-        if (exception != null) {
-            throw exception;
+    public EventLoop eventLoop() {
+        if (eventLoop == null) {
+            return super.eventLoop();
         }
+        return eventLoop;
+    }
+
+    @Override
+    protected void doBind(SocketAddress localAddress) throws Exception {
+        channel = ((XnioEventLoop) eventLoop()).executor.getWorker()
+                .createStreamConnectionServer(localAddress, new AcceptListener(), options.getMap());
+        eventLoop = new XnioEventLoop(channel.getIoThread());
+        // start accepting
+        channel.resumeAccepts();
     }
 
     @Override
@@ -59,14 +68,12 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     protected void doBeginRead() throws Exception {
         if (channel != null) {
             channel.resumeAccepts();
-        } else {
-            throw new IOException("Channel not bound yet");
         }
     }
 
     @Override
     public boolean isOpen() {
-        return channel != null && channel.isOpen();
+        return channel == null || channel.isOpen();
     }
 
     @Override
@@ -91,13 +98,6 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
             channel.setOption(option, value);
         } else {
             options.set(option, value);
-        }
-    }
-
-    private final class BoundListener implements ChannelListener<BoundChannel> {
-        @Override
-        public void handleEvent(BoundChannel channel) {
-            XnioServerSocketChannel.this.channel = (AcceptingChannel) channel;
         }
     }
 }

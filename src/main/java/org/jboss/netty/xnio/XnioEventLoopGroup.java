@@ -25,6 +25,7 @@ import io.netty.util.concurrent.AbstractEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ImmediateEventExecutor;
+import org.xnio.OptionMap;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * {@link EventLoopGroup} implementation which uses a {@link XnioWorker} under the covers. This means all operations
- * will be performaned by it.
+ * will be performed by it.
  */
 public final class XnioEventLoopGroup extends AbstractEventExecutorGroup implements EventLoopGroup {
 
@@ -57,7 +58,7 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
      * @throws IOException
      */
     public XnioEventLoopGroup() throws IOException {
-        this(Xnio.getInstance().createWorker(null));
+        this(Xnio.getInstance().createWorker(OptionMap.EMPTY));
     }
 
     @Override

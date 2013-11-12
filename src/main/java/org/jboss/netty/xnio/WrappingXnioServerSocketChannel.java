@@ -23,13 +23,24 @@ import org.xnio.channels.AcceptingChannel;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-public class WrappingXnioServerChannelChannel extends AbstractXnioServerSocketChannel {
+/**
+ * {@link AbstractXnioServerSocketChannel} implementation which allows to use a {@link AcceptingChannel} and wrap it.
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
+public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSocketChannel {
 
     private final AcceptingChannel channel;
     private final EventLoop eventLoop;
 
+    /**
+     * Create a new instance wrapping the given {@link AcceptingChannel}
+     */
     @SuppressWarnings("unchecked")
-    public WrappingXnioServerChannelChannel(AcceptingChannel channel) {
+    public WrappingXnioServerSocketChannel(AcceptingChannel channel) {
+        if (channel == null) {
+            throw new NullPointerException("channel");
+        }
         this.channel = channel;
         eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
         channel.getAcceptSetter().set(new AcceptListener());
@@ -57,7 +68,7 @@ public class WrappingXnioServerChannelChannel extends AbstractXnioServerSocketCh
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw new UnsupportedOperationException("Wrapped XNIO Channel");
+        throw XnioUtils.unsupportedForWrapped();
     }
 
     @Override

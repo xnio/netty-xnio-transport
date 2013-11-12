@@ -34,6 +34,11 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * {@link EventLoop} implementation which uses a {@link XnioIoThread}.
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
 final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     final XnioIoThread executor;
 
@@ -43,7 +48,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     @Override
     public void shutdown() {
-        // Not supported
+        // Not supported, just ignore
     }
 
     @Override
@@ -58,14 +63,21 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     @Override
     public ChannelFuture register(Channel channel) {
-        return channel.newFailedFuture(new UnsupportedOperationException());
+        return register(channel, channel.newPromise());
     }
 
     @Override
-    public ChannelFuture register(Channel channel, ChannelPromise promise) {
-        return promise.setFailure(new UnsupportedOperationException());
-    }
+    public ChannelFuture register(final Channel channel, final ChannelPromise promise) {
+        if (channel == null) {
+            throw new NullPointerException("channel");
+        }
+        if (promise == null) {
+            throw new NullPointerException("promise");
+        }
 
+        channel.unsafe().register(this, promise);
+        return promise;
+    }
     @Override
     public boolean isShuttingDown() {
         return executor.getWorker().isShutdown();

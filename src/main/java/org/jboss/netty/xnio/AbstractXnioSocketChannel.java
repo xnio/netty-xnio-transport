@@ -45,6 +45,12 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.GatheringByteChannel;
 
+
+/**
+ * {@link SocketChannel} base class for our XNIO transport
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
 abstract class AbstractXnioSocketChannel  extends AbstractChannel implements SocketChannel {
 
     private final ChannelMetadata META_DATA = new ChannelMetadata(false);
@@ -484,9 +490,19 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         }
     }
 
+    /**
+     * Set the given {@link Option} to the given value.
+     */
     protected abstract <T> void setOption0(Option<T> option, T value) throws IOException;
 
+
+    /**
+     * Return the value for the given {@link Option}.
+     */
     protected abstract <T> T getOption0(Option<T> option) throws IOException;
 
+    /**
+     * Returns the underlying {@link StreamConnection} or {@code null} if not created yet.
+     */
     protected abstract StreamConnection connection();
 }

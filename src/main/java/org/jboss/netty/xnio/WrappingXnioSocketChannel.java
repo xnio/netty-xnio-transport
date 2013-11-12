@@ -20,23 +20,43 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.StreamConnection;
+import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 
-public class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
+/**
+ * {@link AbstractXnioSocketChannel} implementation which allows you to wrap a pre-created XNIO channel.
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
+public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
     private final StreamConnection channel;
     private final EventLoop eventLoop;
 
-    public WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
+    WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
+        if (channel == null) {
+            throw new NullPointerException("channel");
+        }
         this.channel = channel;
         eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
         channel.getSourceChannel().getReadSetter().set(new ReadListener());
     }
 
+    /**
+     * Create a new {@link WrappingXnioSocketChannel} which was created via the given {@link AcceptingChannel} and uses
+     * the given {@link StreamConnection} under the covers.
+     */
+    public WrappingXnioSocketChannel(AcceptingChannel<StreamConnection> parent, StreamConnection channel) {
+        this(new WrappingXnioServerSocketChannel(parent), channel);
+    }
+
+    /**
+     * Create a {@link WrappingXnioSocketChannel} which uses the given {@link StreamConnection} under the covers.
+     */
     public WrappingXnioSocketChannel(StreamConnection channel) {
-        this(null, channel);
+        this((AbstractXnioServerSocketChannel) null, channel);
     }
 
     @Override
@@ -51,13 +71,13 @@ public class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw new UnsupportedOperationException("Wrapped XNIO Channel");
+        throw XnioUtils.unsupportedForWrapped();
     }
 
     private final class XnioUnsafe extends AbstractXnioUnsafe {
         @Override
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-            promise.setFailure(new UnsupportedOperationException("Wrapped XNIO Channel"));
+            promise.setFailure(XnioUtils.unsupportedForWrapped());
         }
     }
 

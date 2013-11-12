@@ -24,6 +24,11 @@ import org.xnio.StreamConnection;
 import java.io.IOException;
 import java.net.SocketAddress;
 
+/**
+ * {@link io.netty.channel.socket.SocketChannel} which uses XNIO.
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
 public class XnioSocketChannel extends AbstractXnioSocketChannel {
     private volatile StreamConnection channel;
     private final OptionMap.Builder options = OptionMap.builder();

@@ -24,13 +24,17 @@ import io.netty.channel.socket.ServerSocketChannelConfig;
 import org.xnio.Options;
 
 
-class XnioServerSocketChannelConfig extends DefaultChannelConfig implements ServerSocketChannelConfig {
+/**
+ * {@link ServerSocketChannelConfig} implementation for our XNIO transport
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
+final class XnioServerSocketChannelConfig extends DefaultChannelConfig implements ServerSocketChannelConfig {
     private final AbstractXnioServerSocketChannel channel;
     public XnioServerSocketChannelConfig(AbstractXnioServerSocketChannel channel) {
         super(channel);
         this.channel = channel;
     }
-
 
     @Override
     public int getBacklog() {

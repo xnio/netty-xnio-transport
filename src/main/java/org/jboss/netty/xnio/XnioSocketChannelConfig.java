@@ -24,6 +24,11 @@ import io.netty.channel.socket.SocketChannelConfig;
 import org.xnio.Options;
 
 
+/**
+ * {@link SocketChannelConfig} implementation used by the XNIO transport
+ *
+ * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ */
 class XnioSocketChannelConfig extends DefaultChannelConfig implements SocketChannelConfig {
 
     private final AbstractXnioSocketChannel channel;
