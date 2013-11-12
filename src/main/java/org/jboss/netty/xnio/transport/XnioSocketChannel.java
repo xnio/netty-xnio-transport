@@ -17,6 +17,7 @@
 package org.jboss.netty.xnio.transport;
 
 import io.netty.channel.ChannelPromise;
+import org.xnio.IoFuture;
 import org.xnio.Option;
 import org.xnio.OptionMap;
 import org.xnio.StreamConnection;
@@ -73,8 +74,24 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
     private final class XnioUnsafe extends AbstractXnioUnsafe {
         @Override
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-            ((XnioEventLoop) eventLoop()).executor.openStreamConnection(localAddress, remoteAddress, null, null, null);
-            // TODO: Fix me
+            IoFuture<StreamConnection> future =  ((XnioEventLoop) eventLoop()).executor
+                    .openStreamConnection(localAddress, remoteAddress, null, null, options.getMap());
+            future.addNotifier(new IoFuture.Notifier<StreamConnection, ChannelPromise>() {
+                @Override
+                public void notify(IoFuture<? extends StreamConnection> ioFuture, ChannelPromise promise) {
+                    IOException error = ioFuture.getException();
+                    if (error != null) {
+                        promise.setFailure(error);
+                    } else {
+                        try {
+                            channel = ioFuture.get();
+                            promise.setSuccess();
+                        } catch (Throwable cause) {
+                            promise.setFailure(cause);
+                        }
+                    }
+                }
+            }, promise);
         }
     }
 }
