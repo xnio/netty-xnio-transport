@@ -17,6 +17,7 @@
 package org.jboss.netty.xnio.transport;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.DefaultChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
@@ -180,6 +181,12 @@ class XnioSocketChannelConfig extends DefaultChannelConfig implements SocketChan
     @Override
     public SocketChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
         super.setWriteBufferLowWaterMark(writeBufferLowWaterMark);
+        return this;
+    }
+
+    @Override
+    public SocketChannelConfig setAutoClose(boolean autoClose) {
+        super.setAutoClose(autoClose);
         return this;
     }
 }
