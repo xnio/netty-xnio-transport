@@ -14,7 +14,7 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio;
+package org.jboss.netty.xnio.transport;
 
 import io.netty.channel.ChannelPromise;
 import org.xnio.Option;
