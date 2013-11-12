@@ -25,18 +25,39 @@ import io.netty.util.concurrent.AbstractEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ImmediateEventExecutor;
+import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * {@link EventLoopGroup} implementation which uses a {@link XnioWorker} under the covers. This means all operations
+ * will be performaned by it.
+ */
 public final class XnioEventLoopGroup extends AbstractEventExecutorGroup implements EventLoopGroup {
 
     private final XnioWorker worker;
 
+    /**
+     * Create a new {@link XnioEventLoopGroup} using the provided {@link XnioWorker}.
+     *
+     */
     public XnioEventLoopGroup(XnioWorker worker) {
+        if (worker == null) {
+            throw new NullPointerException("worker");
+        }
         this.worker = worker;
+    }
+
+    /**
+     * Create a new {@link XnioEventLoopGroup} which creates a new {@link XnioWorker} by itself and use it for all operations.
+     * @throws IOException
+     */
+    public XnioEventLoopGroup() throws IOException {
+        this(Xnio.getInstance().createWorker(null));
     }
 
     @Override

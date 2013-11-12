@@ -31,6 +31,7 @@ import org.xnio.XnioIoThread;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
@@ -102,14 +103,14 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        ScheduledFutureWrapper wrapper = new ScheduledFutureWrapper(command, delay, unit);
-        wrapper.key = executor.executeAfter(wrapper, delay, unit);
-        return wrapper;
+        return schedule(Executors.callable(command), delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        return super.schedule(callable, delay, unit);
+        ScheduledFutureWrapper<V> wrapper = new ScheduledFutureWrapper<V>(callable, delay, unit);
+        wrapper.key = executor.executeAfter(wrapper, delay, unit);
+        return wrapper;
     }
 
     @Override
@@ -119,10 +120,10 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     private static final class ScheduledFutureWrapper<V> extends DefaultPromise<V> implements ScheduledFuture<V>, Runnable {
         private XnioExecutor.Key key;
-        private final Runnable task;
+        private final Callable<V> task;
         private final long delay;
         private final TimeUnit unit;
-        ScheduledFutureWrapper(Runnable task, long delay, TimeUnit unit) {
+        ScheduledFutureWrapper(Callable<V> task, long delay, TimeUnit unit) {
             this.task = task;
             this.delay = delay;
             this.unit = unit;
@@ -148,8 +149,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
         @Override
         public void run() {
             try {
-                task.run();
-                trySuccess(null);
+                trySuccess(task.call());
             } catch (Throwable t) {
                 tryFailure(t);
             }
@@ -157,10 +157,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
         @Override
         public boolean cancel(boolean mayInterruptIfRunning) {
-            if (setUncancellable() && key.remove()) {
-                return true;
-            }
-            return false;
+            return setUncancellable() && key.remove();
         }
     }
 
