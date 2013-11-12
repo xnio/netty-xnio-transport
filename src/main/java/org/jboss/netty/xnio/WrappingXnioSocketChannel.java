@@ -17,6 +17,7 @@
 package org.jboss.netty.xnio;
 
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.StreamConnection;
 
@@ -25,15 +26,22 @@ import java.net.SocketAddress;
 
 public class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
     private final StreamConnection channel;
+    private final EventLoop eventLoop;
 
     public WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
         this.channel = channel;
+        eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
         channel.getSourceChannel().getReadSetter().set(new ReadListener());
     }
 
     public WrappingXnioSocketChannel(StreamConnection channel) {
         this(null, channel);
+    }
+
+    @Override
+    public EventLoop eventLoop() {
+        return eventLoop;
     }
 
     @Override

@@ -16,6 +16,7 @@
  */
 package org.jboss.netty.xnio;
 
+import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.channels.AcceptingChannel;
 
@@ -25,11 +26,18 @@ import java.net.SocketAddress;
 public class WrappingXnioServerChannelChannel extends AbstractXnioServerSocketChannel {
 
     private final AcceptingChannel channel;
+    private final EventLoop eventLoop;
 
     @SuppressWarnings("unchecked")
     public WrappingXnioServerChannelChannel(AcceptingChannel channel) {
         this.channel = channel;
+        eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
         channel.getAcceptSetter().set(new AcceptListener());
+    }
+
+    @Override
+    public EventLoop eventLoop() {
+        return eventLoop;
     }
 
     @Override
