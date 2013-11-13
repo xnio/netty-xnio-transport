@@ -126,15 +126,42 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     }
 
     @Override
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+        FixedScheduledFuture wrapper = new FixedScheduledFuture(command, initialDelay, delay, unit);
+        wrapper.key = executor.executeAfter(wrapper, delay, unit);
+        return wrapper;
+    }
+
+    @Override
     public XnioEventLoop next() {
         return this;
     }
 
-    private static final class ScheduledFutureWrapper<V> extends DefaultPromise<V> implements ScheduledFuture<V>, Runnable {
-        private XnioExecutor.Key key;
-        private final Callable<V> task;
+    private final class FixedScheduledFuture extends ScheduledFutureWrapper<Object> {
         private final long delay;
-        private final TimeUnit unit;
+        private FixedScheduledFuture(Runnable task, long initialDelay, long delay, TimeUnit unit) {
+            super(Executors.callable(task), initialDelay, unit);
+            this.delay = delay;
+        }
+
+        @Override
+        public void run() {
+            try {
+                task.call();
+                key = executor.executeAfter(this, delay, unit);
+            } catch (Throwable cause) {
+                tryFailure(cause);
+            }
+        }
+
+    }
+
+    private class ScheduledFutureWrapper<V> extends DefaultPromise<V> implements ScheduledFuture<V>, Runnable {
+        volatile XnioExecutor.Key key;
+        final Callable<V> task;
+        final TimeUnit unit;
+        private final long delay;
+
         ScheduledFutureWrapper(Callable<V> task, long delay, TimeUnit unit) {
             this.task = task;
             this.delay = delay;
