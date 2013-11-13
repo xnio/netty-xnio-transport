@@ -16,14 +16,21 @@
  */
 package org.jboss.netty.xnio.transport;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.ConnectTimeoutException;
 import org.xnio.IoFuture;
 import org.xnio.Option;
 import org.xnio.OptionMap;
 import org.xnio.StreamConnection;
+import org.xnio.XnioIoThread;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketAddress;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link io.netty.channel.socket.SocketChannel} which uses XNIO.
@@ -74,24 +81,58 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
     private final class XnioUnsafe extends AbstractXnioUnsafe {
         @Override
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-            IoFuture<StreamConnection> future =  ((XnioEventLoop) eventLoop()).executor
-                    .openStreamConnection(localAddress, remoteAddress, null, null, options.getMap());
+            if (!ensureOpen(promise)) {
+                return;
+            }
+
+            final boolean wasActive = isActive();
+            XnioIoThread thread = ((XnioEventLoop) eventLoop()).executor;
+            IoFuture<StreamConnection> future;
+            if (localAddress == null) {
+                future = thread.openStreamConnection(remoteAddress, null, null, options.getMap());
+            }  else {
+                future = thread.openStreamConnection(localAddress, remoteAddress, null, null, options.getMap());
+            }
+
+            promise.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                    if (channelFuture.isSuccess()) {
+                        if (!wasActive && isActive()) {
+                            pipeline().fireChannelActive();
+                        }
+                    } else {
+                        closeIfClosed();
+                    }
+                }
+            });
+
             future.addNotifier(new IoFuture.Notifier<StreamConnection, ChannelPromise>() {
                 @Override
                 public void notify(IoFuture<? extends StreamConnection> ioFuture, ChannelPromise promise) {
-                    IOException error = ioFuture.getException();
-                    if (error != null) {
-                        promise.setFailure(error);
-                    } else {
+                    IoFuture.Status status = ioFuture.getStatus();
+                    if (status== IoFuture.Status.DONE) {
                         try {
                             channel = ioFuture.get();
+                            channel.getSourceChannel().getReadSetter().set(new ReadListener());
+
                             promise.setSuccess();
+                            channel.getSourceChannel().resumeReads();
                         } catch (Throwable cause) {
                             promise.setFailure(cause);
                         }
+                    } else {
+                        Exception error;
+                        if (status == IoFuture.Status.FAILED) {
+                            error  = ioFuture.getException();
+                        } else {
+                            error = new CancellationException();
+                        }
+                        promise.setFailure(error);
                     }
                 }
             }, promise);
+
         }
     }
 }

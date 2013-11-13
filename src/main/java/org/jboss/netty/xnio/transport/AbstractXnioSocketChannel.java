@@ -32,6 +32,7 @@ import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.SocketChannelConfig;
+import io.netty.util.IllegalReferenceCountException;
 import io.netty.util.internal.StringUtil;
 import org.xnio.ChannelListener;
 import org.xnio.Option;
@@ -57,7 +58,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     private Runnable flushTask;
     private ChannelListener<ConduitStreamSinkChannel> writeListener;
     private final SocketChannelConfig config = new XnioSocketChannelConfig(this);
-
+    private volatile boolean closed;
     AbstractXnioSocketChannel(AbstractXnioServerSocketChannel parent) {
         super(parent);
     }
@@ -309,12 +310,13 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     @Override
     public boolean isOpen() {
         StreamConnection conn = connection();
-        return conn != null && conn.isOpen();
+        return (conn == null || conn.isOpen()) && !closed;
     }
 
     @Override
     public boolean isActive() {
-        return isOpen();
+        StreamConnection conn = connection();
+        return conn != null && conn.isOpen() && !closed;
     }
 
     @Override
@@ -370,7 +372,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
 
         private void closeOnRead() {
             if (isOpen()) {
-                close(voidPromise());
+                unsafe().close(unsafe().voidPromise());
             }
         }
 
@@ -379,7 +381,11 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                 if (byteBuf.isReadable()) {
                     pipeline.fireChannelRead(byteBuf);
                 } else {
-                    byteBuf.release();
+                    try {
+                        byteBuf.release();
+                    } catch (IllegalReferenceCountException ignore) {
+                        // ignore as it may be released already
+                    }
                 }
             }
             pipeline.fireChannelReadComplete();
@@ -468,6 +474,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
 
     @Override
     protected void doClose() throws Exception {
+        closed = true;
         StreamConnection conn = connection();
         if (conn != null) {
             conn.close();
