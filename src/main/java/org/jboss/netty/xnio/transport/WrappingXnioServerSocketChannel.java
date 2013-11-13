@@ -62,27 +62,12 @@ public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSoc
     }
 
     @Override
-    protected SocketAddress localAddress0() {
-        return channel.getLocalAddress();
-    }
-
-    @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
         throw XnioUtils.unsupportedForWrapped();
     }
 
     @Override
-    protected void doClose() throws Exception {
-        channel.close();
-    }
-
-    @Override
-    protected void doBeginRead() throws Exception {
-        channel.resumeAccepts();
-    }
-
-    @Override
-    public boolean isOpen() {
-        return channel.isOpen();
+    protected AcceptingChannel xnioChannel() {
+        return channel;
     }
 }

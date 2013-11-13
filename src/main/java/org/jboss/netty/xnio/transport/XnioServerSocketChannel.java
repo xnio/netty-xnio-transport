@@ -22,7 +22,6 @@ import org.xnio.OptionMap;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 /**
@@ -58,33 +57,6 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     }
 
     @Override
-    protected void doClose() throws Exception {
-        if (channel != null) {
-            channel.close();
-        }
-    }
-
-    @Override
-    protected void doBeginRead() throws Exception {
-        if (channel != null) {
-            channel.resumeAccepts();
-        }
-    }
-
-    @Override
-    public boolean isOpen() {
-        return channel == null || channel.isOpen();
-    }
-
-    @Override
-    protected InetSocketAddress localAddress0() {
-        if (channel != null) {
-            return channel.getLocalAddress(InetSocketAddress.class);
-        }
-        return null;
-    }
-
-    @Override
     protected <T> T getOption0(Option<T> option) throws IOException {
         if (channel != null) {
             return channel.getOption(option);
@@ -99,5 +71,10 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
         } else {
             options.set(option, value);
         }
+    }
+
+    @Override
+    protected AcceptingChannel xnioChannel() {
+        return channel;
     }
 }

@@ -28,6 +28,7 @@ import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 
 /**
@@ -78,6 +79,42 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
             throw new ChannelException(e);
         }
     }
+
+
+    @Override
+    protected SocketAddress localAddress0() {
+        AcceptingChannel channel = xnioChannel();
+        if (channel == null) {
+            return null;
+        }
+        return channel.getLocalAddress();
+    }
+
+    @Override
+    protected void doClose() throws Exception {
+        AcceptingChannel channel = xnioChannel();
+        if (channel == null) {
+            return;
+        }
+        channel.close();
+    }
+
+    @Override
+    protected void doBeginRead() throws Exception {
+        AcceptingChannel channel = xnioChannel();
+        if (channel == null) {
+            return;
+        }
+        channel.resumeAccepts();
+    }
+
+    @Override
+    public boolean isOpen() {
+        AcceptingChannel channel = xnioChannel();
+        return channel == null || channel.isOpen();
+    }
+
+    protected abstract AcceptingChannel xnioChannel();
 
     /**
      * Set the given {@link Option} to the given value.
