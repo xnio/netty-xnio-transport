@@ -19,7 +19,6 @@ package org.jboss.netty.xnio.transport;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelPromise;
-import io.netty.channel.ConnectTimeoutException;
 import org.xnio.IoFuture;
 import org.xnio.Option;
 import org.xnio.OptionMap;
@@ -27,10 +26,8 @@ import org.xnio.StreamConnection;
 import org.xnio.XnioIoThread;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * {@link io.netty.channel.socket.SocketChannel} which uses XNIO.
