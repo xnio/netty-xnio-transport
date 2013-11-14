@@ -26,6 +26,7 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import org.xnio.OptionMap;
+import org.xnio.Options;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 
@@ -54,11 +55,23 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
     }
 
     /**
-     * Create a new {@link XnioEventLoopGroup} which creates a new {@link XnioWorker} by itself and use it for all operations.
+     * Create a new {@link XnioEventLoopGroup} which creates a new {@link XnioWorker}
+     * by itself and use it for all operations.
+     *
      * @throws IOException
      */
     public XnioEventLoopGroup() throws IOException {
-        this(Xnio.getInstance().createWorker(OptionMap.EMPTY));
+        this(Runtime.getRuntime().availableProcessors() * 2);
+    }
+
+    /**
+     * Create a new {@link XnioEventLoopGroup} which creates a new {@link XnioWorker} by itself and use it for all
+     * operations. Using the given number of Threads to handle the IO.
+     *
+     * @throws IOException
+     */
+    public XnioEventLoopGroup(int numThreads) throws IOException {
+        this(Xnio.getInstance().createWorker(OptionMap.builder().set(Options.WORKER_IO_THREADS, numThreads).getMap()));
     }
 
     @Override
