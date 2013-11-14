@@ -17,9 +17,9 @@
 package org.jboss.netty.xnio.transport;
 
 import io.netty.channel.ChannelPromise;
-import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.StreamConnection;
+import org.xnio.XnioIoThread;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.net.SocketAddress;
  */
 public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
     private final StreamConnection channel;
-    private final EventLoop eventLoop;
+    final XnioIoThread thread;
 
     WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
@@ -40,7 +40,7 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
             throw new NullPointerException("channel");
         }
         this.channel = channel;
-        eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
+        this.thread = channel.getIoThread();
         channel.getSourceChannel().getReadSetter().set(new ReadListener());
     }
 
@@ -60,11 +60,6 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
     }
 
     @Override
-    public EventLoop eventLoop() {
-        return eventLoop;
-    }
-
-    @Override
     protected XnioUnsafe newUnsafe() {
         return new XnioUnsafe();
     }
@@ -79,6 +74,8 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
             promise.setFailure(XnioUtils.unsupportedForWrapped());
         }
+
+
     }
 
     @Override

@@ -16,8 +16,8 @@
  */
 package org.jboss.netty.xnio.transport;
 
-import io.netty.channel.EventLoop;
 import org.xnio.Option;
+import org.xnio.XnioIoThread;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.net.SocketAddress;
 public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSocketChannel {
 
     private final AcceptingChannel channel;
-    private final EventLoop eventLoop;
+    final XnioIoThread thread;
 
     /**
      * Create a new instance wrapping the given {@link AcceptingChannel}
@@ -42,13 +42,8 @@ public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSoc
             throw new NullPointerException("channel");
         }
         this.channel = channel;
-        eventLoop = new XnioEventLoop(channel.getWorker().getIoThread());
+        thread = channel.getIoThread();
         channel.getAcceptSetter().set(new AcceptListener());
-    }
-
-    @Override
-    public EventLoop eventLoop() {
-        return eventLoop;
     }
 
     @Override

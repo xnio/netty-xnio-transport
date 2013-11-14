@@ -86,11 +86,23 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
 
     @Override
     public ChannelFuture register(Channel channel) {
-        return next().register(channel);
+        return register(channel, channel.newPromise());
     }
 
     @Override
     public ChannelFuture register(Channel channel, ChannelPromise promise) {
+        if (channel instanceof WrappingXnioSocketChannel) {
+            WrappingXnioSocketChannel ch = (WrappingXnioSocketChannel) channel;
+            XnioEventLoop loop = new XnioEventLoop(ch.thread);
+            channel.unsafe().register(loop, promise);
+            return promise;
+        }
+        if (channel instanceof WrappingXnioServerSocketChannel) {
+            WrappingXnioServerSocketChannel ch = (WrappingXnioServerSocketChannel) channel;
+            XnioEventLoop loop = new XnioEventLoop(ch.thread);
+            channel.unsafe().register(loop, promise);
+            return promise;
+        }
         return next().register(channel, promise);
     }
 
