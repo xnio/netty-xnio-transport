@@ -19,6 +19,7 @@ package org.jboss.netty.xnio.transport;
 import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.OptionMap;
+import org.xnio.Options;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
@@ -31,7 +32,11 @@ import java.net.SocketAddress;
  */
 public final class XnioServerSocketChannel extends AbstractXnioServerSocketChannel {
     private volatile AcceptingChannel channel;
-    private final OptionMap.Builder options = OptionMap.builder();
+    private final OptionMap.Builder options = OptionMap.builder()
+            .set(Options.WORKER_IO_THREADS, 4)
+            .set(Options.BALANCING_TOKENS, 1)
+            .set(Options.BALANCING_CONNECTIONS, 2);
+
     private volatile EventLoop eventLoop;
 
     @Override
