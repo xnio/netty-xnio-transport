@@ -108,7 +108,7 @@
   <properties>
     <target.jdk>1.7</target.jdk>
     <netty.version>4.0.13.Final-SNAPSHOT</netty.version>
-    <xnio.version>3.2.0.Beta3-SNAPSHOT</xnio.version>
+    <xnio.version>3.2.0.Beta3</xnio.version>
     <junit.version>4.10</junit.version>
   </properties>
 </project>
