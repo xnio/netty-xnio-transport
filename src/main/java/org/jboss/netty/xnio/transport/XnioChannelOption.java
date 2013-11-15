@@ -45,6 +45,7 @@ public final class XnioChannelOption<T> extends ChannelOption<T>{
      */
     public static final ChannelOption<Integer> BALANCING_CONNECTIONS = valueOf("BALANCING_CONNECTIONS");
 
+    @SuppressWarnings("unused")
     private XnioChannelOption(String name) {
         super(name);
     }

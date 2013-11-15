@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     final XnioIoThread executor;
 
-    public XnioEventLoop(XnioIoThread executor) {
+    XnioEventLoop(XnioIoThread executor) {
         this.executor = executor;
     }
 

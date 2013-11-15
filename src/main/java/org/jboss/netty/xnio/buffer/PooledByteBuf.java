@@ -30,6 +30,7 @@ final class PooledByteBuf implements Pooled<ByteBuffer> {
     PooledByteBuf(ByteBuffer buffer) {
         this.buffer = buffer;
     }
+
     @Override
     public void discard() {
         // NOOP
