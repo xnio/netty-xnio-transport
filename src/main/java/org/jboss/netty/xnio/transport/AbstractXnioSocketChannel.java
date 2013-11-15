@@ -31,6 +31,7 @@ import io.netty.channel.FileRegion;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.SocketChannelConfig;
 import io.netty.util.IllegalReferenceCountException;
 import io.netty.util.internal.StringUtil;
 import org.xnio.ChannelListener;
@@ -54,7 +55,7 @@ import java.nio.channels.GatheringByteChannel;
 abstract class AbstractXnioSocketChannel  extends AbstractChannel implements SocketChannel {
 
     private final ChannelMetadata META_DATA = new ChannelMetadata(false);
-    private final XnioSocketChannelConfig config = new XnioSocketChannelConfigImpl(this);
+    private final XnioSocketChannelConfig config = new XnioSocketChannelConfig(this);
 
     private Runnable flushTask;
     private ChannelListener<ConduitStreamSinkChannel> writeListener;
@@ -305,7 +306,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     }
 
     @Override
-    public XnioSocketChannelConfig config() {
+    public SocketChannelConfig config() {
         return config;
     }
 
