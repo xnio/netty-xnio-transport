@@ -150,7 +150,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
         public void run() {
             try {
                 task.call();
-                key = executor.executeAfter(this, delay, unit);
+                key = executor.executeAfter(this, delay, TimeUnit.NANOSECONDS);
             } catch (Throwable cause) {
                 tryFailure(cause);
             }
@@ -161,18 +161,22 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     private class ScheduledFutureWrapper<V> extends DefaultPromise<V> implements ScheduledFuture<V>, Runnable {
         volatile XnioExecutor.Key key;
         final Callable<V> task;
-        final TimeUnit unit;
         private final long delay;
+        protected volatile long start;
 
         ScheduledFutureWrapper(Callable<V> task, long delay, TimeUnit unit) {
             this.task = task;
-            this.delay = delay;
-            this.unit = unit;
+            this.start = System.nanoTime();
+            this.delay = unit.toNanos(delay);
         }
 
         @Override
         public long getDelay(TimeUnit unit) {
-            return unit.convert(delay, this.unit);
+            long remaining = (start + delay) - System.nanoTime();
+            if (remaining < 1 || unit == TimeUnit.NANOSECONDS) {
+                return remaining;
+            }
+            return unit.convert(remaining, TimeUnit.NANOSECONDS);
         }
 
         @Override
