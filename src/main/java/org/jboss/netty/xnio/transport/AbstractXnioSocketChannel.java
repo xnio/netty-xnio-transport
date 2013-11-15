@@ -83,7 +83,18 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
 
     @Override
     protected boolean isCompatible(EventLoop loop) {
-        return loop instanceof XnioEventLoop;
+        if (!(loop instanceof XnioEventLoop)) {
+            return false;
+        }
+        ServerSocketChannel parent = parent();
+        if (parent != null) {
+            // if this channel has a parent we need to ensure that both EventLoopGroups are the same for XNIO
+            // to be sure it uses a Thread from the correct Worker.
+            if (parent.eventLoop().parent() != loop.parent()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

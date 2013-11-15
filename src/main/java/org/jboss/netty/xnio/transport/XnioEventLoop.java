@@ -41,8 +41,10 @@ import java.util.concurrent.TimeUnit;
  */
 final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     final XnioIoThread executor;
+    private final EventLoopGroup parent;
 
-    XnioEventLoop(XnioIoThread executor) {
+    XnioEventLoop(EventLoopGroup parent, XnioIoThread executor) {
+        this.parent = parent ;
         this.executor = executor;
     }
 
@@ -53,7 +55,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     @Override
     public EventLoopGroup parent() {
-        return this;
+        return parent;
     }
 
     @Override

@@ -40,6 +40,7 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
 
     public XnioSocketChannel() {
         super(null);
+        config().setTcpNoDelay(true);
     }
 
     @Override

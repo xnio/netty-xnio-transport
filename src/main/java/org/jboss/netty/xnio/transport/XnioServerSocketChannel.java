@@ -56,9 +56,10 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
         synchronized(this) {
             // use the same thread count as the XnioWorker
             OptionMap map = options.set(Options.WORKER_IO_THREADS, worker.getIoThreadCount()).getMap();
-            channel = ((XnioEventLoop) eventLoop()).executor.getWorker()
+            XnioEventLoop eventLoop = (XnioEventLoop) eventLoop();
+            channel = eventLoop.executor.getWorker()
                     .createStreamConnectionServer(localAddress, new AcceptListener(), map);
-            eventLoop = new XnioEventLoop(channel.getIoThread());
+            this.eventLoop = new XnioEventLoop(eventLoop.parent(), channel.getIoThread());
         }
 
         // start accepting

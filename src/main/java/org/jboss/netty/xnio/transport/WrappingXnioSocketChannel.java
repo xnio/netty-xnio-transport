@@ -41,6 +41,7 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
         }
         this.channel = channel;
         this.thread = channel.getIoThread();
+        config().setTcpNoDelay(true);
         channel.getSourceChannel().getReadSetter().set(new ReadListener());
     }
 

@@ -36,8 +36,6 @@ final class XnioSocketChannelConfigImpl extends DefaultChannelConfig implements 
     XnioSocketChannelConfigImpl(AbstractXnioSocketChannel channel) {
         super(channel);
         this.channel = channel;
-        // use TCP_NO_DELAY by default like other netty transports
-        setTcpNoDelay(true);
     }
 
     @Override
