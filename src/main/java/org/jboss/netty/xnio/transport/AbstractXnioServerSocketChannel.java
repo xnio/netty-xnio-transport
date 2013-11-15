@@ -135,6 +135,10 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
     final class AcceptListener implements ChannelListener<AcceptingChannel<StreamConnection>> {
         @Override
         public void handleEvent(AcceptingChannel<StreamConnection> channel) {
+            if (!config.isAutoRead()) {
+                channel.suspendAccepts();
+            }
+
             try {
                 int messagesToRead = config().getMaxMessagesPerRead();
                 for (int i = 0; i < messagesToRead; i++) {
