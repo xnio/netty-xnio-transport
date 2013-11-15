@@ -92,7 +92,7 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
 
     @Override
     public Future<?> terminationFuture() {
-        throw new UnsupportedOperationException();
+        return newFailedFuture(new UnsupportedOperationException());
     }
 
     @Override
@@ -135,22 +135,55 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     }
 
     @Override
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        FixedRateScheduledFuture wrapper = new FixedRateScheduledFuture(command, initialDelay, period, unit);
+        wrapper.key = executor.executeAfter(wrapper, initialDelay, unit);
+        return wrapper;
+    }
+
+    @Override
     public XnioEventLoop next() {
         return this;
     }
 
-    private final class FixedScheduledFuture extends ScheduledFutureWrapper<Object> {
-        private final long delay;
-        private FixedScheduledFuture(Runnable task, long initialDelay, long delay, TimeUnit unit) {
-            super(Executors.callable(task), initialDelay, unit);
-            this.delay = delay;
+    private final class FixedRateScheduledFuture extends ScheduledFutureWrapper<Object> {
+        private final long period;
+        private int count = 1;
+        private final long initialDelay;
+        private FixedRateScheduledFuture(Runnable task, long delay, long period, TimeUnit unit) {
+            super(Executors.callable(task), delay, unit);
+            this.initialDelay = delay;
+            this.period = period;
         }
 
         @Override
         public void run() {
             try {
                 task.call();
-                key = executor.executeAfter(this, delay, TimeUnit.NANOSECONDS);
+                start = System.nanoTime();
+                delay = initialDelay + period * (++count);
+                key = executor.executeAfter(this,delay, TimeUnit.NANOSECONDS);
+            } catch (Throwable cause) {
+                tryFailure(cause);
+            }
+        }
+
+    }
+
+    private final class FixedScheduledFuture extends ScheduledFutureWrapper<Object> {
+        private long furtherDelay;
+        private FixedScheduledFuture(Runnable task, long initialDelay, long delay, TimeUnit unit) {
+            super(Executors.callable(task), initialDelay, unit);
+            this.furtherDelay = unit.toNanos(delay);
+        }
+
+        @Override
+        public void run() {
+            try {
+                task.call();
+                start = System.nanoTime();
+                delay = furtherDelay;
+                key = executor.executeAfter(this, furtherDelay, TimeUnit.NANOSECONDS);
             } catch (Throwable cause) {
                 tryFailure(cause);
             }
@@ -159,9 +192,9 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
     }
 
     private class ScheduledFutureWrapper<V> extends DefaultPromise<V> implements ScheduledFuture<V>, Runnable {
-        volatile XnioExecutor.Key key;
-        final Callable<V> task;
-        private final long delay;
+        protected volatile XnioExecutor.Key key;
+        protected final Callable<V> task;
+        protected volatile long delay;
         protected volatile long start;
 
         ScheduledFutureWrapper(Callable<V> task, long delay, TimeUnit unit) {
