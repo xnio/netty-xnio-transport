@@ -74,8 +74,6 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
             promise.setFailure(XnioUtils.unsupportedForWrapped());
         }
-
-
     }
 
     @Override

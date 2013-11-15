@@ -20,7 +20,6 @@ import io.netty.channel.AbstractServerChannel;
 import io.netty.channel.ChannelException;
 import io.netty.channel.EventLoop;
 import io.netty.channel.socket.ServerSocketChannel;
-import io.netty.channel.socket.ServerSocketChannelConfig;
 import org.xnio.ChannelListener;
 import org.xnio.Option;
 import org.xnio.StreamConnection;
@@ -37,7 +36,7 @@ import java.net.SocketAddress;
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
-    private final XnioServerSocketChannelConfig config = new XnioServerSocketChannelConfig(this);
+    private final XnioServerSocketChannelConfigImpl config = new XnioServerSocketChannelConfigImpl(this);
 
     @Override
     protected boolean isCompatible(EventLoop loop) {
@@ -60,7 +59,7 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
     }
 
     @Override
-    public ServerSocketChannelConfig config() {
+    public XnioServerSocketChannelConfigImpl config() {
         return config;
     }
 
@@ -114,13 +113,15 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
         return channel == null || channel.isOpen();
     }
 
+    /**
+     * Return the underyling {@link AcceptingChannel}
+     */
     protected abstract AcceptingChannel xnioChannel();
 
     /**
      * Set the given {@link Option} to the given value.
      */
     protected abstract <T> void setOption0(Option<T> option, T value) throws IOException;
-
 
     /**
      * Return the value for the given {@link Option}.

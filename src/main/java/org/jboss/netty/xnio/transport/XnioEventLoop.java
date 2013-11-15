@@ -74,12 +74,10 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
         if (promise == null) {
             throw new NullPointerException("promise");
         }
-        if (channel instanceof WrappingXnioSocketChannel) {
-            channel.unsafe().register(this, promise);
-        }
         channel.unsafe().register(this, promise);
         return promise;
     }
+
     @Override
     public boolean isShuttingDown() {
         return executor.getWorker().isShutdown();

@@ -35,8 +35,8 @@ import java.util.concurrent.CancellationException;
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 public class XnioSocketChannel extends AbstractXnioSocketChannel {
-    private volatile StreamConnection channel;
     private final OptionMap.Builder options = OptionMap.builder();
+    private volatile StreamConnection channel;
 
     public XnioSocketChannel() {
         super(null);
@@ -72,7 +72,7 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw new UnsupportedOperationException("Not support to bind first with XNIO");
+        throw new UnsupportedOperationException("Not supported to bind int a separate step");
     }
 
     private final class XnioUnsafe extends AbstractXnioUnsafe {

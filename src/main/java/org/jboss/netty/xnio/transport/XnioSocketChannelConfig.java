@@ -18,175 +18,69 @@ package org.jboss.netty.xnio.transport;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelConfig;
-import io.netty.channel.DefaultChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.SocketChannelConfig;
-import org.xnio.Options;
-
 
 /**
- * {@link SocketChannelConfig} implementation used by the XNIO transport
- *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-class XnioSocketChannelConfig extends DefaultChannelConfig implements SocketChannelConfig {
-
-    private final AbstractXnioSocketChannel channel;
-    public XnioSocketChannelConfig(AbstractXnioSocketChannel channel) {
-        super(channel);
-        this.channel = channel;
-    }
+public interface XnioSocketChannelConfig extends ChannelConfig, SocketChannelConfig {
 
     @Override
-    public boolean isTcpNoDelay() {
-        return channel.getOption(Options.TCP_NODELAY);
-    }
+    XnioSocketChannelConfig setTcpNoDelay(boolean tcpNoDelay);
 
     @Override
-    public SocketChannelConfig setTcpNoDelay(boolean tcpNoDelay) {
-        channel.setOption(Options.TCP_NODELAY, tcpNoDelay);
-        return this;
-    }
+    XnioSocketChannelConfig setSoLinger(int soLinger);
 
     @Override
-    public int getSoLinger() {
-        return 0;
-    }
+    XnioSocketChannelConfig setSendBufferSize(int sendBufferSize);
 
     @Override
-    public SocketChannelConfig setSoLinger(int soLinger) {
-        throw new UnsupportedOperationException();
-    }
+    XnioSocketChannelConfig setReceiveBufferSize(int receiveBufferSize);
 
     @Override
-    public int getSendBufferSize() {
-        return channel.getOption(Options.SEND_BUFFER);
-    }
+    XnioSocketChannelConfig setKeepAlive(boolean keepAlive);
 
     @Override
-    public SocketChannelConfig setSendBufferSize(int sendBufferSize) {
-        channel.setOption(Options.SEND_BUFFER, sendBufferSize);
-        return this;
-    }
+    XnioSocketChannelConfig setTrafficClass(int trafficClass);
 
     @Override
-    public int getReceiveBufferSize() {
-        return channel.getOption(Options.RECEIVE_BUFFER);
-    }
+    XnioSocketChannelConfig setReuseAddress(boolean reuseAddress);
 
     @Override
-    public SocketChannelConfig setReceiveBufferSize(int receiveBufferSize) {
-        channel.setOption(Options.RECEIVE_BUFFER, receiveBufferSize);
-        return this;
-    }
+    XnioSocketChannelConfig setPerformancePreferences(int connectionTime, int latency, int bandwidth);
 
     @Override
-    public boolean isKeepAlive() {
-        return channel.getOption(Options.KEEP_ALIVE);
-    }
+    XnioSocketChannelConfig setAllowHalfClosure(boolean allowHalfClosure);
 
     @Override
-    public SocketChannelConfig setKeepAlive(boolean keepAlive) {
-        channel.setOption(Options.KEEP_ALIVE, keepAlive);
-        return this;
-    }
+    XnioSocketChannelConfig setConnectTimeoutMillis(int connectTimeoutMillis);
 
     @Override
-    public int getTrafficClass() {
-        return channel.getOption(Options.IP_TRAFFIC_CLASS);
-    }
+    XnioSocketChannelConfig setMaxMessagesPerRead(int maxMessagesPerRead);
 
     @Override
-    public SocketChannelConfig setTrafficClass(int trafficClass) {
-        channel.setOption(Options.IP_TRAFFIC_CLASS, trafficClass);
-        return this;
-    }
+    XnioSocketChannelConfig setWriteSpinCount(int writeSpinCount);
 
     @Override
-    public boolean isReuseAddress() {
-        return channel.getOption(Options.REUSE_ADDRESSES);
-
-    }
+    XnioSocketChannelConfig setAllocator(ByteBufAllocator allocator);
 
     @Override
-    public SocketChannelConfig setReuseAddress(boolean reuseAddress) {
-        channel.setOption(Options.REUSE_ADDRESSES, reuseAddress);
-        return this;
-    }
+    XnioSocketChannelConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator);
 
     @Override
-    public SocketChannelConfig setPerformancePreferences(int connectionTime, int latency, int bandwidth) {
-        throw new UnsupportedOperationException();
-    }
+    XnioSocketChannelConfig setAutoRead(boolean autoRead);
 
     @Override
-    public boolean isAllowHalfClosure() {
-        return false;
-    }
+    XnioSocketChannelConfig setAutoClose(boolean autoClose);
 
     @Override
-    public SocketChannelConfig setAllowHalfClosure(boolean allowHalfClosure) {
-        throw new UnsupportedOperationException();
-    }
+    XnioSocketChannelConfig setMessageSizeEstimator(MessageSizeEstimator estimator);
 
     @Override
-    public SocketChannelConfig setConnectTimeoutMillis(int connectTimeoutMillis) {
-        super.setConnectTimeoutMillis(connectTimeoutMillis);
-        return this;
-    }
+    XnioSocketChannelConfig setWriteBufferHighWaterMark(int mark);
 
     @Override
-    public SocketChannelConfig setMaxMessagesPerRead(int maxMessagesPerRead) {
-        super.setMaxMessagesPerRead(maxMessagesPerRead);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setWriteSpinCount(int writeSpinCount) {
-        super.setWriteSpinCount(writeSpinCount);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setAllocator(ByteBufAllocator allocator) {
-        super.setAllocator(allocator);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator) {
-        super.setRecvByteBufAllocator(allocator);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setAutoRead(boolean autoRead) {
-        super.setAutoRead(autoRead);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
-        super.setWriteBufferHighWaterMark(writeBufferHighWaterMark);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setMessageSizeEstimator(MessageSizeEstimator estimator) {
-        super.setMessageSizeEstimator(estimator);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
-        super.setWriteBufferLowWaterMark(writeBufferLowWaterMark);
-        return this;
-    }
-
-    @Override
-    public SocketChannelConfig setAutoClose(boolean autoClose) {
-        super.setAutoClose(autoClose);
-        return this;
-    }
+    XnioSocketChannelConfig setWriteBufferLowWaterMark(int mark);
 }

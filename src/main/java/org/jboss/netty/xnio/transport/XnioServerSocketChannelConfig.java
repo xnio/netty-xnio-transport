@@ -17,114 +17,95 @@
 package org.jboss.netty.xnio.transport;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.DefaultChannelConfig;
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.ServerSocketChannelConfig;
-import org.xnio.Options;
-
 
 /**
- * {@link ServerSocketChannelConfig} implementation for our XNIO transport
- *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class XnioServerSocketChannelConfig extends DefaultChannelConfig implements ServerSocketChannelConfig {
-    private final AbstractXnioServerSocketChannel channel;
-    public XnioServerSocketChannelConfig(AbstractXnioServerSocketChannel channel) {
-        super(channel);
-        this.channel = channel;
-    }
+public interface XnioServerSocketChannelConfig extends ChannelConfig, ServerSocketChannelConfig {
+
+    /**
+     * @see {@link XnioChannelOption#CONNECTION_HIGH_WATER}
+     */
+    XnioServerSocketChannelConfig setConnectionHighWater(int connectionHighWater);
+
+    /**
+     * @see {@link XnioChannelOption#CONNECTION_HIGH_WATER}
+     */
+    int getConnectionHighWater();
+
+    /**
+     * @see {@link XnioChannelOption#CONNECTION_LOW_WATER}
+     */
+    XnioServerSocketChannelConfig setConnectionLowWater(int connectionLowWater);
+
+    /**
+     * @see {@link XnioChannelOption#CONNECTION_LOW_WATER}
+     */
+    int getConnectionLowWater();
+
+    /**
+     * @see {@link XnioChannelOption#BALANCING_TOKENS}
+     */
+    XnioServerSocketChannelConfig setBalancingTokens(int balancingTokens);
+
+    /**
+     * @see {@link XnioChannelOption#BALANCING_TOKENS}
+     */
+    int getBalancingTokens();
+
+    /**
+     * @see {@link XnioChannelOption#BALANCING_CONNECTIONS}
+     */
+    XnioServerSocketChannelConfig setBalancingConnections(int connections);
+
+    /**
+     * @see {@link XnioChannelOption#BALANCING_CONNECTIONS}
+     */
+    int getBalancingConnections();
 
     @Override
-    public int getBacklog() {
-        return channel.getOption(Options.BACKLOG);
-    }
+    XnioServerSocketChannelConfig setConnectTimeoutMillis(int connectTimeoutMillis);
 
     @Override
-    public ServerSocketChannelConfig setBacklog(int backlog) {
-        channel.setOption(Options.BACKLOG, backlog);
-        return this;
-    }
+    XnioServerSocketChannelConfig setMaxMessagesPerRead(int maxMessagesPerRead);
 
     @Override
-    public boolean isReuseAddress() {
-        return channel.getOption(Options.REUSE_ADDRESSES);
-    }
+    XnioServerSocketChannelConfig setWriteSpinCount(int writeSpinCount);
 
     @Override
-    public ServerSocketChannelConfig setReuseAddress(boolean reuseAddress) {
-        channel.setOption(Options.REUSE_ADDRESSES, reuseAddress);
-        return this;
-    }
+    XnioServerSocketChannelConfig setAllocator(ByteBufAllocator allocator);
 
     @Override
-    public int getReceiveBufferSize() {
-        return channel.getOption(Options.RECEIVE_BUFFER);
-    }
+    XnioServerSocketChannelConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator);
 
     @Override
-    public ServerSocketChannelConfig setReceiveBufferSize(int receiveBufferSize) {
-        channel.setOption(Options.RECEIVE_BUFFER, receiveBufferSize);
-        return this;
-    }
+    XnioServerSocketChannelConfig setAutoRead(boolean autoRead);
+
+    @Deprecated
+    XnioServerSocketChannelConfig setAutoClose(boolean autoClose);
 
     @Override
-    public ServerSocketChannelConfig setPerformancePreferences(int connectionTime, int latency, int bandwidth) {
-        throw new UnsupportedOperationException();
-    }
+    XnioServerSocketChannelConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark);
 
     @Override
-    public ServerSocketChannelConfig setConnectTimeoutMillis(int connectTimeoutMillis) {
-        super.setConnectTimeoutMillis(connectTimeoutMillis);
-        return this;
-    }
+    XnioServerSocketChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark);
 
     @Override
-    public ServerSocketChannelConfig setMaxMessagesPerRead(int maxMessagesPerRead) {
-        super.setMaxMessagesPerRead(maxMessagesPerRead);
-        return this;
-    }
+    XnioServerSocketChannelConfig setMessageSizeEstimator(MessageSizeEstimator estimator);
 
     @Override
-    public ServerSocketChannelConfig setWriteSpinCount(int writeSpinCount) {
-        super.setWriteSpinCount(writeSpinCount);
-        return this;
-    }
+    XnioServerSocketChannelConfig setBacklog(int backlog);
 
     @Override
-    public ServerSocketChannelConfig setAllocator(ByteBufAllocator allocator) {
-        super.setAllocator(allocator);
-        return this;
-    }
+    XnioServerSocketChannelConfig setReuseAddress(boolean reuseAddress);
 
     @Override
-    public ServerSocketChannelConfig setRecvByteBufAllocator(RecvByteBufAllocator allocator) {
-        super.setRecvByteBufAllocator(allocator);
-        return this;
-    }
+    XnioServerSocketChannelConfig setReceiveBufferSize(int receiveBufferSize);
 
     @Override
-    public ServerSocketChannelConfig setAutoRead(boolean autoRead) {
-        super.setAutoRead(autoRead);
-        return this;
-    }
-
-    @Override
-    public ServerSocketChannelConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
-        super.setWriteBufferHighWaterMark(writeBufferHighWaterMark);
-        return this;
-    }
-
-    @Override
-    public ServerSocketChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
-        super.setWriteBufferLowWaterMark(writeBufferLowWaterMark);
-        return this;
-    }
-
-    @Override
-    public ServerSocketChannelConfig setMessageSizeEstimator(MessageSizeEstimator estimator) {
-        super.setMessageSizeEstimator(estimator);
-        return this;
-    }
+    XnioServerSocketChannelConfig setPerformancePreferences(int connectionTime, int latency, int bandwidth);
 }

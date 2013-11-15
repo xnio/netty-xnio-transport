@@ -20,6 +20,7 @@ import io.netty.channel.EventLoop;
 import org.xnio.Option;
 import org.xnio.OptionMap;
 import org.xnio.Options;
+import org.xnio.XnioWorker;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
@@ -31,12 +32,9 @@ import java.net.SocketAddress;
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 public final class XnioServerSocketChannel extends AbstractXnioServerSocketChannel {
-    private volatile AcceptingChannel channel;
-    private final OptionMap.Builder options = OptionMap.builder()
-            .set(Options.WORKER_IO_THREADS, 4)
-            .set(Options.BALANCING_TOKENS, 1)
-            .set(Options.BALANCING_CONNECTIONS, 2);
+    private final OptionMap.Builder options = OptionMap.builder();
 
+    private volatile AcceptingChannel channel;
     private volatile EventLoop eventLoop;
 
     @Override
@@ -53,10 +51,16 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     }
 
     @Override
-    protected void doBind(SocketAddress localAddress) throws Exception {
-        channel = ((XnioEventLoop) eventLoop()).executor.getWorker()
-                .createStreamConnectionServer(localAddress, new AcceptListener(), options.getMap());
-        eventLoop = new XnioEventLoop(channel.getIoThread());
+    protected  void doBind(SocketAddress localAddress) throws Exception {
+        XnioWorker worker = ((XnioEventLoop) eventLoop()).executor.getWorker();
+        synchronized(this) {
+            // use the same thread count as the XnioWorker
+            OptionMap map = options.set(Options.WORKER_IO_THREADS, worker.getIoThreadCount()).getMap();
+            channel = ((XnioEventLoop) eventLoop()).executor.getWorker()
+                    .createStreamConnectionServer(localAddress, new AcceptListener(), map);
+            eventLoop = new XnioEventLoop(channel.getIoThread());
+        }
+
         // start accepting
         channel.resumeAccepts();
     }
@@ -70,7 +74,7 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     }
 
     @Override
-    protected <T> void setOption0(Option<T> option, T value) throws IOException {
+    protected synchronized <T> void setOption0(Option<T> option, T value) throws IOException {
         if (channel != null) {
             channel.setOption(option, value);
         } else {
