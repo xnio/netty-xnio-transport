@@ -71,7 +71,7 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
      * @throws IOException
      */
     public XnioEventLoopGroup(int numThreads) throws IOException {
-        this(Xnio.getInstance().createWorker(OptionMap.builder().set(Options.WORKER_IO_THREADS, numThreads).getMap()));
+        this(Xnio.getInstance().createWorker(OptionMap.create(Options.WORKER_IO_THREADS, numThreads)));
     }
 
     @Override
