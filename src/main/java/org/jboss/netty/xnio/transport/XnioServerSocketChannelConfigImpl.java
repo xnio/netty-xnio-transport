@@ -21,15 +21,12 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.DefaultChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
-import io.netty.channel.socket.ServerSocketChannelConfig;
 import org.xnio.Options;
 
 import java.util.Map;
 
 
 /**
- * {@link ServerSocketChannelConfig} implementation for our XNIO transport
- *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 final class XnioServerSocketChannelConfigImpl extends DefaultChannelConfig implements XnioServerSocketChannelConfig {

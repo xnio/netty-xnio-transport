@@ -133,11 +133,6 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
             sink.getWriteSetter().set(writeListener);
             sink.resumeWrites();
         }
-
-    }
-
-    private void clearOpWrite() {
-        connection().getSinkChannel().suspendWrites();
     }
 
     @Override
@@ -181,7 +176,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
 
                         // Finish the write loop if no new messages were flushed by in.remove().
                         if (in.isEmpty()) {
-                            clearOpWrite();
+                            connection().getSinkChannel().suspendWrites();
                             break;
                         }
                     } else {
@@ -218,7 +213,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
             Object msg = in.current();
             if (msg == null) {
                 // Wrote all messages.
-                clearOpWrite();
+                connection().getSinkChannel().suspendWrites();
                 break;
             }
 

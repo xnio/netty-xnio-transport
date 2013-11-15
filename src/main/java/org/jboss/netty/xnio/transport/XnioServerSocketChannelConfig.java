@@ -23,9 +23,11 @@ import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.ServerSocketChannelConfig;
 
 /**
+ * {@link ServerSocketChannelConfig} which expose configuration settings which are specific to the XNIO transport.
+ *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-public interface XnioServerSocketChannelConfig extends ChannelConfig, ServerSocketChannelConfig {
+public interface XnioServerSocketChannelConfig extends ServerSocketChannelConfig {
 
     /**
      * @see {@link XnioChannelOption#CONNECTION_HIGH_WATER}
