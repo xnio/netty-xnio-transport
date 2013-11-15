@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
 final class XnioByteBufUtil {
 
     private XnioByteBufUtil() {
-
+        // Utility
     }
 
     static Pooled<ByteBuffer> allocateDirect(ByteBufferSlicePool pool, int initialCapacity) {

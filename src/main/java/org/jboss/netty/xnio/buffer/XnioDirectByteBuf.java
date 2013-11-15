@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 final class XnioDirectByteBuf extends UnpooledDirectByteBuf {
     private Pooled<ByteBuffer> pooled;
 
-    public XnioDirectByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
+    XnioDirectByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
         super(alloc, initialCapacity, maxCapacity);
     }
 

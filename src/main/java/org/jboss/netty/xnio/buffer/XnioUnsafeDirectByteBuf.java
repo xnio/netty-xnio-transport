@@ -29,7 +29,7 @@ final class XnioUnsafeDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
 
     private Pooled<ByteBuffer> pooled;
 
-    public XnioUnsafeDirectByteBuf(XnioByteBufAllocator alloc, int initialSize, int maxCapacity) {
+    XnioUnsafeDirectByteBuf(XnioByteBufAllocator alloc, int initialSize, int maxCapacity) {
         super(alloc, initialSize, maxCapacity);
     }
 
