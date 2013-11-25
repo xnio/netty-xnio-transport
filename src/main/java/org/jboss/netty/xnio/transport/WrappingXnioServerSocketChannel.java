@@ -28,10 +28,10 @@ import java.net.SocketAddress;
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSocketChannel {
+public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSocketChannel implements IoThreadPowered {
 
     private final AcceptingChannel channel;
-    final XnioIoThread thread;
+    private final XnioIoThread thread;
 
     /**
      * Create a new instance wrapping the given {@link AcceptingChannel}
@@ -44,6 +44,11 @@ public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSoc
         this.channel = channel;
         thread = channel.getIoThread();
         channel.getAcceptSetter().set(new AcceptListener());
+    }
+
+    @Override
+    public XnioIoThread ioThread() {
+        return thread;
     }
 
     @Override

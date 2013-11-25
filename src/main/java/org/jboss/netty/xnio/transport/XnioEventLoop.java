@@ -39,13 +39,18 @@ import java.util.concurrent.TimeUnit;
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class XnioEventLoop extends AbstractEventExecutor implements EventLoop {
-    final XnioIoThread executor;
+final class XnioEventLoop extends AbstractEventExecutor implements EventLoop, IoThreadPowered{
+    private final XnioIoThread executor;
     private final EventLoopGroup parent;
 
     XnioEventLoop(EventLoopGroup parent, XnioIoThread executor) {
         this.parent = parent ;
         this.executor = executor;
+    }
+
+    @Override
+    public XnioIoThread ioThread() {
+        return executor;
     }
 
     @Override

@@ -91,15 +91,9 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
 
     @Override
     public ChannelFuture register(Channel channel, ChannelPromise promise) {
-        if (channel instanceof WrappingXnioSocketChannel) {
-            WrappingXnioSocketChannel ch = (WrappingXnioSocketChannel) channel;
-            XnioEventLoop loop = new XnioEventLoop(this, ch.thread);
-            channel.unsafe().register(loop, promise);
-            return promise;
-        }
-        if (channel instanceof WrappingXnioServerSocketChannel) {
-            WrappingXnioServerSocketChannel ch = (WrappingXnioServerSocketChannel) channel;
-            XnioEventLoop loop = new XnioEventLoop(this, ch.thread);
+        if (channel instanceof IoThreadPowered) {
+            IoThreadPowered ch = (IoThreadPowered) channel;
+            XnioEventLoop loop = new XnioEventLoop(this, ch.ioThread());
             channel.unsafe().register(loop, promise);
             return promise;
         }
@@ -115,7 +109,7 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
     public Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
         shutdown();
         if (isShutdown()) {
-            return ImmediateEventExecutor.INSTANCE.newSucceededFuture( null);
+            return ImmediateEventExecutor.INSTANCE.newSucceededFuture(null);
         } else {
             return ImmediateEventExecutor.INSTANCE.newFailedFuture(new TimeoutException());
         }
@@ -143,6 +137,6 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return  worker.awaitTermination(timeout, unit);
+        return worker.awaitTermination(timeout, unit);
     }
 }

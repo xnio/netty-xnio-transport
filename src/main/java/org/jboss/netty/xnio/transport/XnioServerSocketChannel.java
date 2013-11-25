@@ -52,12 +52,12 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
 
     @Override
     protected  void doBind(SocketAddress localAddress) throws Exception {
-        XnioWorker worker = ((XnioEventLoop) eventLoop()).executor.getWorker();
+        XnioWorker worker = ((XnioEventLoop) eventLoop()).ioThread().getWorker();
         synchronized(this) {
             // use the same thread count as the XnioWorker
             OptionMap map = options.set(Options.WORKER_IO_THREADS, worker.getIoThreadCount()).getMap();
             XnioEventLoop eventLoop = (XnioEventLoop) eventLoop();
-            channel = eventLoop.executor.getWorker()
+            channel = eventLoop.ioThread().getWorker()
                     .createStreamConnectionServer(localAddress, new AcceptListener(), map);
             this.eventLoop = new XnioEventLoop(eventLoop.parent(), channel.getIoThread());
         }

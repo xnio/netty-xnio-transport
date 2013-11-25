@@ -84,7 +84,7 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
             }
 
             final boolean wasActive = isActive();
-            XnioIoThread thread = ((XnioEventLoop) eventLoop()).executor;
+            XnioIoThread thread = ((XnioEventLoop) eventLoop()).ioThread();
             IoFuture<StreamConnection> future;
             if (localAddress == null) {
                 future = thread.openStreamConnection(remoteAddress, null, null, options.getMap());

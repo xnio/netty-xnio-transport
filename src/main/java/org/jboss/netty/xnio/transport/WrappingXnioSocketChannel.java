@@ -30,9 +30,9 @@ import java.net.SocketAddress;
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
+public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel implements IoThreadPowered {
     private final StreamConnection channel;
-    final XnioIoThread thread;
+    private final XnioIoThread thread;
 
     WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
@@ -58,6 +58,11 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel {
      */
     public WrappingXnioSocketChannel(StreamConnection channel) {
         this((AbstractXnioServerSocketChannel) null, channel);
+    }
+
+    @Override
+    public XnioIoThread ioThread() {
+        return thread;
     }
 
     @Override
