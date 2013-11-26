@@ -54,7 +54,7 @@ import java.nio.channels.GatheringByteChannel;
  */
 abstract class AbstractXnioSocketChannel  extends AbstractChannel implements SocketChannel {
 
-    private final ChannelMetadata META_DATA = new ChannelMetadata(false);
+    private static final ChannelMetadata META_DATA = new ChannelMetadata(false);
     private final XnioSocketChannelConfig config = new XnioSocketChannelConfig(this);
 
     private Runnable flushTask;
