@@ -48,6 +48,11 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop, Io
         this.executor = executor;
     }
 
+    XnioEventLoop(XnioIoThread executor) {
+        this.parent = this;
+        this.executor = executor;
+    }
+
     @Override
     public XnioIoThread ioThread() {
         return executor;

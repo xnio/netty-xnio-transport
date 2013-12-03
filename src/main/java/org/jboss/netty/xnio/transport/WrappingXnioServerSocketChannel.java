@@ -44,6 +44,9 @@ public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSoc
         this.channel = channel;
         thread = channel.getIoThread();
         channel.getAcceptSetter().set(new AcceptListener());
+        // register a EventLoop and start read
+        unsafe().register(new XnioEventLoop(channel.getWorker().getIoThread()), unsafe().voidPromise());
+        read();
     }
 
     @Override
