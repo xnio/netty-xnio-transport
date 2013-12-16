@@ -14,17 +14,15 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.buffer;
+package org.xnio.netty.transport;
 
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.UnpooledHeapByteBuf;
-
+import org.xnio.XnioIoThread;
 
 /**
+ *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class XnioHeapByteBuf extends UnpooledHeapByteBuf {
-    XnioHeapByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
-        super(alloc, initialCapacity, maxCapacity);
-    }
+interface IoThreadPowered {
+
+    XnioIoThread ioThread();
 }

@@ -14,19 +14,17 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.transport;
+package org.xnio.netty.buffer;
+
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.UnpooledHeapByteBuf;
+
 
 /**
- *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-class XnioUtils {
-
-    private XnioUtils() {
-        // Utility
-    }
-
-    static UnsupportedOperationException unsupportedForWrapped() {
-        return new UnsupportedOperationException("Wrapped XNIO Channel");
+final class XnioHeapByteBuf extends UnpooledHeapByteBuf {
+    XnioHeapByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
+        super(alloc, initialCapacity, maxCapacity);
     }
 }

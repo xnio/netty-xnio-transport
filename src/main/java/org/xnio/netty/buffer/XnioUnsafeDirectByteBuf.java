@@ -14,7 +14,7 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.buffer;
+package org.xnio.netty.buffer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledUnsafeDirectByteBuf;

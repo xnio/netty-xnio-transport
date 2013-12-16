@@ -14,10 +14,9 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.transport;
+package org.xnio.netty.transport;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.ChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.socket.ServerSocketChannelConfig;

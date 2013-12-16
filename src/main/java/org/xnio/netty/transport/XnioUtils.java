@@ -14,35 +14,19 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.buffer;
-
-import io.netty.util.internal.PlatformDependent;
-import org.xnio.Pooled;
-
-import java.nio.ByteBuffer;
+package org.xnio.netty.transport;
 
 /**
+ *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class PooledByteBuf implements Pooled<ByteBuffer> {
-    private final ByteBuffer buffer;
+class XnioUtils {
 
-    PooledByteBuf(ByteBuffer buffer) {
-        this.buffer = buffer;
+    private XnioUtils() {
+        // Utility
     }
 
-    @Override
-    public void discard() {
-        // NOOP
-    }
-
-    @Override
-    public void free() {
-        PlatformDependent.freeDirectBuffer(buffer);
-    }
-
-    @Override
-    public ByteBuffer getResource() throws IllegalStateException {
-        return buffer;
+    static UnsupportedOperationException unsupportedForWrapped() {
+        return new UnsupportedOperationException("Wrapped XNIO Channel");
     }
 }

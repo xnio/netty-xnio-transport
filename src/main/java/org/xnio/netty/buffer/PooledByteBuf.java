@@ -14,10 +14,9 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.buffer;
+package org.xnio.netty.buffer;
 
 import io.netty.util.internal.PlatformDependent;
-import org.xnio.ByteBufferSlicePool;
 import org.xnio.Pooled;
 
 import java.nio.ByteBuffer;
@@ -25,26 +24,25 @@ import java.nio.ByteBuffer;
 /**
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class XnioByteBufUtil {
+final class PooledByteBuf implements Pooled<ByteBuffer> {
+    private final ByteBuffer buffer;
 
-    private XnioByteBufUtil() {
-        // Utility
+    PooledByteBuf(ByteBuffer buffer) {
+        this.buffer = buffer;
     }
 
-    static Pooled<ByteBuffer> allocateDirect(ByteBufferSlicePool pool, int initialCapacity) {
-        Pooled<ByteBuffer> pooled;
-        if (initialCapacity <= pool.getBufferSize()) {
-            pooled = pool.allocate();
-        } else {
-            pooled = new PooledByteBuf(ByteBuffer.allocateDirect(initialCapacity));
-        }
-        return pooled;
+    @Override
+    public void discard() {
+        // NOOP
     }
 
-    static void freeDirect(ByteBuffer buffer, ByteBuffer newBuffer) {
-        if (buffer != newBuffer) {
-            PlatformDependent.freeDirectBuffer(buffer);
-        }
+    @Override
+    public void free() {
+        PlatformDependent.freeDirectBuffer(buffer);
     }
 
+    @Override
+    public ByteBuffer getResource() throws IllegalStateException {
+        return buffer;
+    }
 }

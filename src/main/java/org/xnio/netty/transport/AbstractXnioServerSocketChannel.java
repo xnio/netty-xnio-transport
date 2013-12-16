@@ -14,7 +14,7 @@
  * under the License.
  *
  */
-package org.jboss.netty.xnio.transport;
+package org.xnio.netty.transport;
 
 import io.netty.channel.AbstractServerChannel;
 import io.netty.channel.ChannelException;
