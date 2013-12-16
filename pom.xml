@@ -31,21 +31,25 @@
   <version>0.1.0-SNAPSHOT</version>
   <inceptionYear>2013</inceptionYear>
   <packaging>jar</packaging>
-  <url>https://github.com/xnio/netty-xnio-transport</url>
+
+  <organization>
+     <name>JBoss, a division of Red Hat</name>
+     <url>http://www.jboss.org/</url>
+  </organization>
+
   <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-    </license>
+     <license>
+        <name>ASL 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+     </license>
   </licenses>
-  <developers>
-    <developer>
-      <id>norman.maurer</id>
-      <name>Norman Maurer</name>
-      <email>nmaurer@redhat.com</email>
-    </developer>
-  </developers>
-  
+
+  <scm>
+     <connection>scm:git:git://github.com/xnio/netty-xnio-transport.git</connection>
+     <developerConnection>scm:git:https://github.com/xnio/netty-xnio-transport.git</developerConnection>
+     <url>https://github.com/xnio/netty-xnio-transport</url>
+  </scm>
   <prerequisites>
     <maven>3.0.2</maven>
   </prerequisites>
@@ -98,6 +102,37 @@
     <target.jdk>1.7</target.jdk>
     <netty.version>4.0.13.Final</netty.version>
     <xnio.version>3.2.0.Beta3</xnio.version>
-    <junit.version>4.10</junit.version>
   </properties>
+
+
+  <repositories>
+    <repository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+       </releases>
+       <snapshots>
+         <enabled>true</enabled>
+       </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 </project>
