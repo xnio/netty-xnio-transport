@@ -53,7 +53,7 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel i
     public WrappingXnioSocketChannel(AcceptingChannel<StreamConnection> parent, StreamConnection channel) {
         this(new WrappingXnioServerSocketChannel(parent), channel);
         // register a EventLoop and start read
-        unsafe().register(new XnioEventLoop(channel.getWorker().getIoThread()), unsafe().voidPromise());
+        unsafe().register(new XnioEventLoop(thread), unsafe().voidPromise());
         read();
     }
 
@@ -63,7 +63,7 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel i
     public WrappingXnioSocketChannel(StreamConnection channel) {
         this((AbstractXnioServerSocketChannel) null, channel);
         // register a EventLoop and start read
-        unsafe().register(new XnioEventLoop(channel.getWorker().getIoThread()), unsafe().voidPromise());
+        unsafe().register(new XnioEventLoop(thread), unsafe().voidPromise());
         read();
     }
 
