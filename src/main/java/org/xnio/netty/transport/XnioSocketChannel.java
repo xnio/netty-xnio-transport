@@ -73,7 +73,7 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw new UnsupportedOperationException("Not supported to bind int a separate step");
+        throw new UnsupportedOperationException("Not supported to bind in a separate step");
     }
 
     private final class XnioUnsafe extends AbstractXnioUnsafe {

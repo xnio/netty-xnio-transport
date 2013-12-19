@@ -371,7 +371,6 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     final class ReadListener implements ChannelListener<ConduitStreamSourceChannel> {
         private RecvByteBufAllocator.Handle allocHandle;
 
-
         private void removeReadOp(ConduitStreamSourceChannel channel) {
             if (channel.isReadResumed()) {
                 channel.suspendReads();
@@ -379,6 +378,8 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         }
 
         private void closeOnRead() {
+            StreamConnection connection = connection();
+            suspend(connection);
             if (isOpen()) {
                 unsafe().close(unsafe().voidPromise());
             }
@@ -483,6 +484,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         closed = true;
         StreamConnection conn = connection();
         if (conn != null) {
+            suspend(conn);
             conn.close();
         }
     }
@@ -501,6 +503,13 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         } catch (IOException e) {
             throw new ChannelException(e);
         }
+    }
+    private static void suspend(StreamConnection connection) {
+        if (connection == null) {
+            return;
+        }
+        connection.getSourceChannel().suspendReads();
+        connection.getSinkChannel().suspendWrites();
     }
 
     /**

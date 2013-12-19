@@ -17,10 +17,7 @@
 package org.xnio.netty.transport;
 
 import io.netty.channel.EventLoop;
-import org.xnio.Option;
-import org.xnio.OptionMap;
-import org.xnio.Options;
-import org.xnio.XnioWorker;
+import org.xnio.*;
 import org.xnio.channels.AcceptingChannel;
 
 import java.io.IOException;
@@ -35,35 +32,22 @@ public final class XnioServerSocketChannel extends AbstractXnioServerSocketChann
     private final OptionMap.Builder options = OptionMap.builder();
 
     private volatile AcceptingChannel channel;
-    private volatile EventLoop eventLoop;
-
     @Override
     protected boolean isCompatible(EventLoop loop) {
         return loop instanceof XnioEventLoop;
     }
 
     @Override
-    public EventLoop eventLoop() {
-        if (eventLoop == null) {
-            return super.eventLoop();
-        }
-        return eventLoop;
-    }
-
-    @Override
-    protected  void doBind(SocketAddress localAddress) throws Exception {
+    protected void doBind(SocketAddress localAddress) throws Exception {
         XnioWorker worker = ((XnioEventLoop) eventLoop()).ioThread().getWorker();
-        synchronized(this) {
-            // use the same thread count as the XnioWorker
-            OptionMap map = options.set(Options.WORKER_IO_THREADS, worker.getIoThreadCount()).getMap();
-            XnioEventLoop eventLoop = (XnioEventLoop) eventLoop();
-            channel = eventLoop.ioThread().getWorker()
-                    .createStreamConnectionServer(localAddress, new AcceptListener(), map);
-            this.eventLoop = new XnioEventLoop(eventLoop.parent(), channel.getIoThread());
+        // use the same thread count as the XnioWorker
+        OptionMap map = options.set(Options.WORKER_IO_THREADS, worker.getIoThreadCount()).getMap();
+        XnioEventLoop eventLoop = (XnioEventLoop) eventLoop();
+        synchronized (this) {
+            channel = eventLoop.ioThread().getWorker().createStreamConnectionServer(localAddress, new AcceptListener(), map);
+            // start accepting
+            channel.resumeAccepts();
         }
-
-        // start accepting
-        channel.resumeAccepts();
     }
 
     @Override

@@ -95,6 +95,7 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
         if (channel == null) {
             return;
         }
+        channel.suspendAccepts();
         channel.close();
     }
 
