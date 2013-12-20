@@ -37,6 +37,16 @@ import java.net.SocketAddress;
  */
 abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
     private final XnioServerSocketChannelConfigImpl config = new XnioServerSocketChannelConfigImpl(this);
+    private static final ThreadLocal<StreamConnection[]> connections = new ThreadLocal<>();
+
+    private static StreamConnection[] connectionsArray(int size) {
+        StreamConnection[] array = connections.get();
+        if (array == null || array.length < size) {
+            array = new StreamConnection[size];
+            connections.set(array);
+        }
+        return array;
+    }
 
     @Override
     protected boolean isCompatible(EventLoop loop) {
@@ -134,25 +144,68 @@ abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel imp
      * {@link io.netty.channel.ChannelPipeline}.
      */
     final class AcceptListener implements ChannelListener<AcceptingChannel<StreamConnection>> {
+
         @Override
-        public void handleEvent(AcceptingChannel<StreamConnection> channel) {
+        public void handleEvent(final AcceptingChannel<StreamConnection> channel) {
             if (!config.isAutoRead()) {
                 channel.suspendAccepts();
             }
-
-            try {
-                int messagesToRead = config().getMaxMessagesPerRead();
-                for (int i = 0; i < messagesToRead; i++) {
-                    StreamConnection conn = channel.accept();
-                    if (conn == null) {
-                        break;
+            EventLoop loop = eventLoop();
+            if (loop.inEventLoop()) {
+                try {
+                    int messagesToRead = config().getMaxMessagesPerRead();
+                    for (int i = 0; i < messagesToRead; i++) {
+                        StreamConnection conn = channel.accept();
+                        if (conn == null) {
+                            break;
+                        }
+                        pipeline().fireChannelRead(new WrappingXnioSocketChannel(AbstractXnioServerSocketChannel.this, conn));
                     }
-                    pipeline().fireChannelRead(new WrappingXnioSocketChannel(AbstractXnioServerSocketChannel.this, conn));
+                } catch (Throwable cause) {
+                    pipeline().fireExceptionCaught(cause);
                 }
-            } catch (Throwable cause) {
-                pipeline().fireExceptionCaught(cause);
+                pipeline().fireChannelReadComplete();
+            } else {
+                Throwable cause;
+                int messagesToRead = config().getMaxMessagesPerRead();
+                final StreamConnection[] array = connectionsArray(messagesToRead);
+                try {
+                    for (int i = 0; i < messagesToRead; i++) {
+                        StreamConnection conn = channel.accept();
+                        array[i] = conn;
+                        if (conn == null) {
+                            break;
+                        }
+                    }
+                    cause = null;
+                } catch (Throwable e) {
+                    cause = e;
+                }
+                final Throwable acceptError = cause;
+
+                eventLoop().execute( new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            for (int i = 0; i < array.length; i++) {
+                                StreamConnection conn = array[i];
+                                if (conn == null) {
+                                    break;
+                                }
+                                pipeline().fireChannelRead(new WrappingXnioSocketChannel(AbstractXnioServerSocketChannel.this, conn));
+                            }
+                        } catch (Throwable cause) {
+                            pipeline().fireExceptionCaught(cause);
+                        }
+                        if (acceptError != null) {
+                            pipeline().fireExceptionCaught(acceptError);
+                        }
+                        pipeline().fireChannelReadComplete();
+                    }
+                });
             }
-            pipeline().fireChannelReadComplete();
+
         }
     }
 }
