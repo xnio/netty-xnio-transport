@@ -424,6 +424,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
             try {
                 do {
                     byteBuf = allocHandle.allocate(allocator);
+                    int writable = byteBuf.writableBytes();
                     int localReadAmount = byteBuf.writeBytes(channel, byteBuf.writableBytes());
                     if (localReadAmount <= 0) {
                         // not was read release the buffer
@@ -434,6 +435,10 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                     allocHandle.record(localReadAmount);
+                    if (localReadAmount < writable) {
+                        // we read less then what the buffer can hold so it seems like we drained it completely
+                        break;
+                     }
                 } while (++ messages < maxMessagesPerRead);
 
                 pipeline.fireChannelReadComplete();
