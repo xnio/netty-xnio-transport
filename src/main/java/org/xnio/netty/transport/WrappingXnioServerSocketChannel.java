@@ -66,7 +66,7 @@ public final class WrappingXnioServerSocketChannel extends AbstractXnioServerSoc
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw XnioUtils.unsupportedForWrapped();
+        throw new UnsupportedOperationException("Wrapped XNIO Channel");
     }
 
     @Override

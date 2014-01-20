@@ -34,7 +34,6 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel i
     private final StreamConnection channel;
     private final XnioIoThread thread;
 
-
     WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
         if (channel == null) {
@@ -79,13 +78,13 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel i
 
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
-        throw XnioUtils.unsupportedForWrapped();
+        throw new UnsupportedOperationException("Wrapped XNIO Channel");
     }
 
     private final class XnioUnsafe extends AbstractXnioUnsafe {
         @Override
         public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-            promise.setFailure(XnioUtils.unsupportedForWrapped());
+            promise.setFailure(new UnsupportedOperationException("Wrapped XNIO Channel"));
         }
     }
 
