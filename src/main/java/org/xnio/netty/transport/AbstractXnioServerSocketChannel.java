@@ -37,7 +37,7 @@ import java.net.SocketAddress;
  */
 abstract class AbstractXnioServerSocketChannel extends AbstractServerChannel implements ServerSocketChannel {
     private final XnioServerSocketChannelConfigImpl config = new XnioServerSocketChannelConfigImpl(this);
-    private static final ThreadLocal<StreamConnection[]> connections = new ThreadLocal<>();
+    private static final ThreadLocal<StreamConnection[]> connections = new ThreadLocal<StreamConnection[]>();
 
     private static StreamConnection[] connectionsArray(int size) {
         StreamConnection[] array = connections.get();
