@@ -19,6 +19,7 @@ package org.xnio.netty.transport;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoopGroup;
 import io.netty.testsuite.transport.TestsuitePermutation;
 import org.xnio.ByteBufferSlicePool;
 import org.xnio.netty.buffer.XnioByteBufAllocator;
@@ -33,8 +34,18 @@ import java.util.List;
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 final class XnioTestsuiteUtils {
+    private static final EventLoopGroup GROUP;
+
+    static {
+        try {
+            GROUP = new XnioEventLoopGroup();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     static List<ByteBufAllocator> newAllocators(List<ByteBufAllocator> allocs) {
-        List<ByteBufAllocator> allocators = new ArrayList<>(allocs);
+        List<ByteBufAllocator> allocators = new ArrayList<ByteBufAllocator>(allocs);
         allocators.add(new XnioByteBufAllocator(new ByteBufferSlicePool(1024 * 16, 1024 * 32)));
         return allocators;
     }
@@ -44,20 +55,12 @@ final class XnioTestsuiteUtils {
                 new TestsuitePermutation.BootstrapComboFactory<ServerBootstrap, Bootstrap>() {
                     @Override
                     public ServerBootstrap newServerInstance() {
-                        try {
-                            return new ServerBootstrap().channel(XnioServerSocketChannel.class).group(new XnioEventLoopGroup());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        return new ServerBootstrap().channel(XnioServerSocketChannel.class).group(GROUP);
                     }
 
                     @Override
                     public Bootstrap newClientInstance() {
-                        try {
-                            return new Bootstrap().channel(XnioSocketChannel.class).group(new XnioEventLoopGroup());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        return new Bootstrap().channel(XnioSocketChannel.class).group(GROUP);
                     }
                 });
     }
