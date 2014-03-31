@@ -104,6 +104,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     }
 
 
+
     private void incompleteWrite(boolean setOpWrite) {
         // Did not write completely.
         if (setOpWrite) {
@@ -351,6 +352,14 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     }
 
     protected abstract class AbstractXnioUnsafe extends AbstractUnsafe {
+        private boolean readPending;
+
+        @Override
+        public void beginRead() {
+            // Channel.read() or ChannelHandlerContext.read() was called
+            readPending = true;
+            super.beginRead();
+        }
 
         @Override
         protected void flush0() {
@@ -414,16 +423,15 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
             if (allocHandle == null) {
                 this.allocHandle = allocHandle = config.getRecvByteBufAllocator().newHandle();
             }
-            if (!config.isAutoRead()) {
-                removeReadOp(channel);
-            }
 
             ByteBuf byteBuf = null;
             int messages = 0;
             boolean close = false;
             try {
+                int byteBufCapacity = allocHandle.guess();
+                int totalReadAmount = 0;
                 do {
-                    byteBuf = allocHandle.allocate(allocator);
+                    byteBuf = allocator.ioBuffer(byteBufCapacity);
                     int writable = byteBuf.writableBytes();
                     int localReadAmount = byteBuf.writeBytes(channel, byteBuf.writableBytes());
                     if (localReadAmount <= 0) {
@@ -432,16 +440,32 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         close = localReadAmount < 0;
                         break;
                     }
+                    ((AbstractXnioUnsafe) unsafe()).readPending = false;
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
-                    allocHandle.record(localReadAmount);
-                    if (localReadAmount < writable) {
-                        // we read less then what the buffer can hold so it seems like we drained it completely
+
+                    if (totalReadAmount >= Integer.MAX_VALUE - localReadAmount) {
+                        // Avoid overflow.
+                        totalReadAmount = Integer.MAX_VALUE;
                         break;
-                     }
+                    }
+
+                    totalReadAmount += localReadAmount;
+
+                    // stop reading
+                    if (!config.isAutoRead()) {
+                        break;
+                    }
+
+                    if (localReadAmount < writable) {
+                        // Read less than what the buffer can hold,
+                        // which might mean we drained the recv buffer completely.
+                        break;
+                    }
                 } while (++ messages < maxMessagesPerRead);
 
                 pipeline.fireChannelReadComplete();
+                allocHandle.record(totalReadAmount);
 
                 if (close) {
                     closeOnRead();
@@ -449,6 +473,16 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                 }
             } catch (Throwable t) {
                 handleReadException(pipeline, byteBuf, t, close);
+            } finally {
+                // Check if there is a readPending which was not processed yet.
+                // This could be for two reasons:
+                // * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method
+                // * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method
+                //
+                // See https://github.com/netty/netty/issues/2254
+                if (!config.isAutoRead() && !((AbstractXnioUnsafe) unsafe()).readPending) {
+                    removeReadOp(channel);
+                }
             }
         }
     }
