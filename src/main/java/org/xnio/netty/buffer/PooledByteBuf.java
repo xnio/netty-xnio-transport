@@ -45,4 +45,9 @@ final class PooledByteBuf implements Pooled<ByteBuffer> {
     public ByteBuffer getResource() throws IllegalStateException {
         return buffer;
     }
+
+	@Override
+	public void close() {
+		free();
+	}
 }

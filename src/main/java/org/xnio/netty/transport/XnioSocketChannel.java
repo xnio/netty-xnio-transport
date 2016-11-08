@@ -16,18 +16,19 @@
  */
 package org.xnio.netty.transport;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelPromise;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.util.concurrent.CancellationException;
+
 import org.xnio.IoFuture;
 import org.xnio.Option;
 import org.xnio.OptionMap;
 import org.xnio.StreamConnection;
 import org.xnio.XnioIoThread;
 
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.util.concurrent.CancellationException;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPromise;
 
 /**
  * {@link io.netty.channel.socket.SocketChannel} which uses XNIO.
@@ -37,6 +38,7 @@ import java.util.concurrent.CancellationException;
 public class XnioSocketChannel extends AbstractXnioSocketChannel {
     private final OptionMap.Builder options = OptionMap.builder();
     private volatile StreamConnection channel;
+    private volatile XnioChannelCloseFuture closeFuture;
 
     public XnioSocketChannel() {
         super(null);
@@ -74,6 +76,26 @@ public class XnioSocketChannel extends AbstractXnioSocketChannel {
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
         throw new UnsupportedOperationException("Not supported to bind in a separate step");
+    }
+    
+    @Override
+    public ChannelFuture shutdownInput() {
+    	if (closeFuture != null) {
+    		closeFuture = new XnioChannelCloseFuture(this);
+    	}
+    	channel.getSourceChannel().setCloseListener(closeFuture);
+    	try {
+			channel.getSourceChannel().shutdownReads();
+		} catch (IOException e) {
+			closeFuture.setError(e);
+		}
+    	return closeFuture;
+    }
+
+    @Override
+    public ChannelFuture shutdownInput(ChannelPromise channelPromise) {
+    	closeFuture = new XnioChannelPromiseCloseFuture(this, channelPromise);
+    	return shutdownInput();
     }
 
     private final class XnioUnsafe extends AbstractXnioUnsafe {

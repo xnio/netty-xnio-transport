@@ -19,6 +19,7 @@ package org.xnio.netty.transport;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.ssl.SslContext;
 import io.netty.testsuite.transport.TestsuitePermutation;
 import io.netty.testsuite.transport.socket.SocketStartTlsTest;
 
@@ -28,9 +29,15 @@ import java.util.List;
 /**
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ * @author Flavia Rainone
  */
 public class XnioSocketStartTlsTest extends SocketStartTlsTest {
-    @Override
+    
+	public XnioSocketStartTlsTest(SslContext serverCtx, SslContext clientCtx) {
+		super(serverCtx, clientCtx);
+	}
+
+	@Override
     protected List<ByteBufAllocator> newAllocators() {
         return XnioTestsuiteUtils.newAllocators(super.newAllocators());
     }

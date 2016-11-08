@@ -89,6 +89,12 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop, Io
         channel.unsafe().register(this, promise);
         return promise;
     }
+    
+
+	@Override
+	public ChannelFuture register(ChannelPromise promise) {
+		return register(promise.channel(), promise);
+	}
 
     @Override
     public boolean isShuttingDown() {
@@ -248,5 +254,6 @@ final class XnioEventLoop extends AbstractEventExecutor implements EventLoop, Io
             return setUncancellable() && key.remove();
         }
     }
+
 
 }

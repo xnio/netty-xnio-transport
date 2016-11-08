@@ -16,9 +16,25 @@
  */
 package org.xnio.netty.transport;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.GatheringByteChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.xnio.ChannelListener;
+import org.xnio.Option;
+import org.xnio.StreamConnection;
+import org.xnio.conduits.ConduitStreamSinkChannel;
+import org.xnio.conduits.ConduitStreamSourceChannel;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.AbstractChannel;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelFuture;
@@ -33,24 +49,16 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.SocketChannelConfig;
 import io.netty.util.IllegalReferenceCountException;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.internal.StringUtil;
-import org.xnio.ChannelListener;
-import org.xnio.Option;
-import org.xnio.StreamConnection;
-import org.xnio.conduits.ConduitStreamSinkChannel;
-import org.xnio.conduits.ConduitStreamSourceChannel;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.GatheringByteChannel;
 
 
 /**
  * {@link SocketChannel} base class for our XNIO transport
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ * @author Flavia Rainone
  */
 abstract class AbstractXnioSocketChannel  extends AbstractChannel implements SocketChannel {
 
@@ -227,13 +235,21 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                 }
 
                 if (!buf.isDirect()) {
+                	//FIXME
+                	if (true)
+                		throw new RuntimeException("buffer is not dirrect");
                     ByteBufAllocator alloc = alloc();
                     if (alloc.isDirectBufferPooled()) {
                         // Non-direct buffers are copied into JDK's own internal direct buffer on every I/O.
                         // We can do a better job by using our pooled allocator. If the current allocator does not
                         // pool a direct buffer, we rely on JDK's direct buffer pool.
                         buf = alloc.directBuffer(readableBytes).writeBytes(buf);
-                        in.current(buf);
+                        //in.current(buf);
+                        // FIXME
+                        Object o = in.current();
+                        if (o != null) {
+                        	throw new RuntimeException("o is " + o + " - " + o.getClass());
+                        }
                     }
                 }
 
@@ -354,12 +370,12 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     protected abstract class AbstractXnioUnsafe extends AbstractUnsafe {
         private boolean readPending;
 
-        @Override
+        /*@Override
         public void beginRead() {
             // Channel.read() or ChannelHandlerContext.read() was called
             readPending = true;
             super.beginRead();
-        }
+        }*/
 
         @Override
         protected void flush0() {
@@ -450,8 +466,11 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         break;
                     }
 
-                    totalReadAmount += localReadAmount;
+                    // FLAVIA
+                    allocHandle.lastBytesRead(localReadAmount);
 
+                    totalReadAmount += localReadAmount;
+                    
                     // stop reading
                     if (!config.isAutoRead()) {
                         break;
@@ -462,10 +481,14 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         // which might mean we drained the recv buffer completely.
                         break;
                     }
-                } while (++ messages < maxMessagesPerRead);
+                } while (++ messages < maxMessagesPerRead && allocHandle.continueReading()); // FLAVIA
+                
+                // FLAVIA
+                allocHandle.incMessagesRead(messages);
+                allocHandle.readComplete();
 
                 pipeline.fireChannelReadComplete();
-                allocHandle.record(totalReadAmount);
+                //allocHandle.record(totalReadAmount);
 
                 if (close) {
                     closeOnRead();
@@ -566,4 +589,181 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
      * Returns the underlying {@link StreamConnection} or {@code null} if not created yet.
      */
     protected abstract StreamConnection connection();
+    
+    @Override
+    public boolean isShutdown() {
+    	return isInputShutdown() && isOutputShutdown();
+    }
+    
+    @Override
+    public ChannelFuture shutdown() {
+    	final ChannelFuture inputFuture = shutdownInput();
+    	final ChannelFuture outputFuture = shutdownOutput();
+    	return getShutdownChannelFuture(inputFuture, outputFuture);
+    }	
+
+    @Override
+    public ChannelFuture shutdown(ChannelPromise channelPromise) {
+    	final ChannelFuture inputFuture = shutdownInput(channelPromise);
+    	final ChannelFuture outputFuture = shutdownOutput(channelPromise);
+    	return getShutdownChannelFuture(inputFuture, outputFuture);
+    }
+    
+    private ChannelFuture getShutdownChannelFuture(final ChannelFuture inputFuture, final ChannelFuture outputFuture) {
+    	return new ChannelFuture() {
+
+			@Override
+			public boolean isSuccess() {
+				return inputFuture.isSuccess() && outputFuture.isSuccess();
+			}
+
+			@Override
+			public boolean isCancellable() {
+				return inputFuture.isCancellable() && outputFuture.isCancellable();
+			}
+
+			@Override
+			public Throwable cause() {
+				return inputFuture.cause() != null? inputFuture.cause(): outputFuture.cause();
+			}
+
+			@Override
+			public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+				long currentTimeMillis = System.currentTimeMillis();
+				if (inputFuture.await(timeout, unit)) { 
+					currentTimeMillis -= System.currentTimeMillis();
+					if (currentTimeMillis <= 0) 
+						return outputFuture.isDone(); // not enough time to await outputFuture
+					return outputFuture.await(currentTimeMillis, TimeUnit.MILLISECONDS);
+				}
+				return false;
+			}
+
+			@Override
+			public boolean await(long timeoutMillis) throws InterruptedException {
+				return await(timeoutMillis, TimeUnit.MILLISECONDS);
+			}
+
+			@Override
+			public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+				long currentTimeMillis = System.currentTimeMillis();
+				if (inputFuture.awaitUninterruptibly(timeout, unit)) { 
+					currentTimeMillis -= System.currentTimeMillis();
+					if (currentTimeMillis <= 0)
+						return outputFuture.isDone(); // not enough time to await outputFuture
+					return outputFuture.awaitUninterruptibly(currentTimeMillis, TimeUnit.MILLISECONDS);
+				}
+				return false;
+			}
+
+			@Override
+			public boolean awaitUninterruptibly(long timeoutMillis) {
+				return awaitUninterruptibly(timeoutMillis, TimeUnit.MILLISECONDS);
+			}
+
+			@Override
+			public Void getNow() {
+				return inputFuture.isDone() && outputFuture.isDone()? inputFuture.getNow(): null;
+			}
+
+			@Override
+			public boolean cancel(boolean mayInterruptIfRunning) {
+				boolean cancelInput = inputFuture.cancel(mayInterruptIfRunning);
+				boolean cancelOutput = outputFuture.cancel(mayInterruptIfRunning);
+				return cancelInput && cancelOutput;
+			}
+
+			@Override
+			public boolean isCancelled() {
+				return inputFuture.isCancelled() && outputFuture.isCancelled();
+			}
+
+			@Override
+			public boolean isDone() {
+				return inputFuture.isDone() && outputFuture.isDone();
+			}
+
+			@Override
+			public Void get() throws InterruptedException, ExecutionException {
+				Void inputResult = inputFuture.get();
+				outputFuture.get();
+				return inputResult;
+			}
+
+			@Override
+			public Void get(long timeout, TimeUnit unit)
+					throws InterruptedException, ExecutionException, TimeoutException {
+				Void inputResult = inputFuture.get(timeout, unit);
+				outputFuture.get(timeout, unit);
+				return inputResult;
+			}
+
+			@Override
+			public Channel channel() {
+				return AbstractXnioSocketChannel.this;
+			}
+
+			@Override
+			public ChannelFuture addListener(GenericFutureListener<? extends Future<? super Void>> listener) {
+				inputFuture.addListener(listener);
+				outputFuture.addListener(listener);
+				return this;
+			}
+
+			@Override
+			public ChannelFuture addListeners(GenericFutureListener<? extends Future<? super Void>>... listeners) {
+				inputFuture.addListeners(listeners);
+				outputFuture.addListeners(listeners);
+				return this;
+			}
+
+			@Override
+			public ChannelFuture removeListener(GenericFutureListener<? extends Future<? super Void>> listener) {
+				inputFuture.removeListener(listener);
+				outputFuture.removeListener(listener);
+				return this;
+			}
+
+			@Override
+			public ChannelFuture removeListeners(GenericFutureListener<? extends Future<? super Void>>... listeners) {
+				inputFuture.removeListeners(listeners);
+				outputFuture.removeListeners(listeners);
+				return this;
+			}
+
+			@Override
+			public ChannelFuture sync() throws InterruptedException {
+				inputFuture.sync();
+				outputFuture.sync();
+				return this;
+			}
+
+			@Override
+			public ChannelFuture syncUninterruptibly() {
+				inputFuture.syncUninterruptibly();
+				outputFuture.syncUninterruptibly();
+				return this;
+			}
+
+			@Override
+			public ChannelFuture await() throws InterruptedException {
+				inputFuture.await();
+				outputFuture.await();
+				return this;
+			}
+
+			@Override
+			public ChannelFuture awaitUninterruptibly() {
+				inputFuture.awaitUninterruptibly();
+				outputFuture.awaitUninterruptibly();
+				return this;
+			}
+
+			@Override
+			public boolean isVoid() {
+				return inputFuture.isVoid() || outputFuture.isVoid();
+			}
+    	};
+    }
+    
 }
