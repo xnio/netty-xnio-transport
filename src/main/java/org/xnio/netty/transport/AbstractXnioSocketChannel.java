@@ -368,14 +368,11 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
     }
 
     protected abstract class AbstractXnioUnsafe extends AbstractUnsafe {
-        private boolean readPending;
+        private boolean readPending = false;
 
-        /*@Override
-        public void beginRead() {
-            // Channel.read() or ChannelHandlerContext.read() was called
+        public void beginRead0() {
             readPending = true;
-            super.beginRead();
-        }*/
+        }
 
         @Override
         protected void flush0() {
@@ -535,6 +532,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         if (conn == null) {
             return;
         }
+        ((AbstractXnioUnsafe)unsafe()).beginRead0();
         ConduitStreamSourceChannel source = conn.getSourceChannel();
         if (!source.isReadResumed()) {
             source.resumeReads();
