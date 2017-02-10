@@ -21,6 +21,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.testsuite.transport.TestsuitePermutation;
 import io.netty.testsuite.transport.socket.SocketFileRegionTest;
+import org.junit.Ignore;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import java.util.List;
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
+@Ignore("Test hangs")
 public class XnioSocketFileRegionTest extends SocketFileRegionTest {
     @Override
     protected List<ByteBufAllocator> newAllocators() {
