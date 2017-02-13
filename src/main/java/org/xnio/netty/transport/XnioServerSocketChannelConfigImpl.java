@@ -171,7 +171,7 @@ final class XnioServerSocketChannelConfigImpl extends DefaultChannelConfig imple
     }
     
     public XnioServerSocketChannelConfig setWriteBufferWaterMark(WriteBufferWaterMark writeBufferWaterMark) {
-    	super.setWriteBufferWaterMark(writeBufferWaterMark);
+        super.setWriteBufferWaterMark(writeBufferWaterMark);
     	return this;
     }
 

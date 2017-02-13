@@ -144,6 +144,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
         }
     }
 
+
     @Override
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
         int writeSpinCount = -1;
@@ -234,24 +235,9 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                     continue;
                 }
 
-                if (!buf.isDirect()) {
-                	//FIXME
-                	if (true)
-                		throw new RuntimeException("buffer is not dirrect");
-                    ByteBufAllocator alloc = alloc();
-                    if (alloc.isDirectBufferPooled()) {
-                        // Non-direct buffers are copied into JDK's own internal direct buffer on every I/O.
-                        // We can do a better job by using our pooled allocator. If the current allocator does not
-                        // pool a direct buffer, we rely on JDK's direct buffer pool.
-                        buf = alloc.directBuffer(readableBytes).writeBytes(buf);
-                        //in.current(buf);
-                        // FIXME
-                        Object o = in.current();
-                        if (o != null) {
-                        	throw new RuntimeException("o is " + o + " - " + o.getClass());
-                        }
-                    }
-                }
+                // code corresponding to previous if (!buf.isDirect()) { ... }
+                // has been removed in corresponding Netty's AbstractNioByteChannel
+                // in https://github.com/netty/netty/pull/2242
 
                 boolean setOpWrite = false;
                 boolean done = false;
@@ -448,7 +434,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                     int writable = byteBuf.writableBytes();
                     int localReadAmount = byteBuf.writeBytes(channel, byteBuf.writableBytes());
                     if (localReadAmount <= 0) {
-                        // not was read release the buffer
+                        // nothing was read release the buffer
                         byteBuf.release();
                         close = localReadAmount < 0;
                         break;
@@ -463,9 +449,6 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         break;
                     }
 
-                    // FLAVIA
-                    allocHandle.lastBytesRead(localReadAmount);
-
                     totalReadAmount += localReadAmount;
                     
                     // stop reading
@@ -478,14 +461,13 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         // which might mean we drained the recv buffer completely.
                         break;
                     }
-                } while (++ messages < maxMessagesPerRead && allocHandle.continueReading()); // FLAVIA
-                
-                // FLAVIA
+                } while (++ messages < maxMessagesPerRead && allocHandle.continueReading());
+
                 allocHandle.incMessagesRead(messages);
+                allocHandle.lastBytesRead(totalReadAmount);
                 allocHandle.readComplete();
 
                 pipeline.fireChannelReadComplete();
-                //allocHandle.record(totalReadAmount);
 
                 if (close) {
                     closeOnRead();
