@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat, Inc.
+ * Copyright 2014 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -14,40 +14,28 @@
  * under the License.
  *
  */
-package org.xnio.netty.buffer;
+package org.xnio.netty.transport;
 
-import io.netty.util.internal.PlatformDependent;
-import org.xnio.Pooled;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.testsuite.transport.TestsuitePermutation;
+import io.netty.testsuite.transport.socket.SocketStringEchoTest;
 
-import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
+ *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
-final class PooledByteBuf implements Pooled<ByteBuffer> {
-    private final ByteBuffer buffer;
-
-    PooledByteBuf(ByteBuffer buffer) {
-        this.buffer = buffer;
+public class XnioSocketStringEchoTest extends SocketStringEchoTest {
+    @Override
+    protected List<ByteBufAllocator> newAllocators() {
+        return XnioTestsuiteUtils.newAllocators(super.newAllocators());
     }
 
     @Override
-    public void discard() {
-        // NOOP
+    protected List<TestsuitePermutation.BootstrapComboFactory<ServerBootstrap, Bootstrap>> newFactories() {
+        return XnioTestsuiteUtils.newFactories();
     }
-
-    @Override
-    public void free() {
-        PlatformDependent.freeDirectBuffer(buffer);
-    }
-
-    @Override
-    public ByteBuffer getResource() throws IllegalStateException {
-        return buffer;
-    }
-
-	@Override
-	public void close() {
-		free();
-	}
 }

@@ -16,12 +16,14 @@
  */
 package org.xnio.netty.transport;
 
+import org.xnio.Options;
+
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.DefaultChannelConfig;
 import io.netty.channel.MessageSizeEstimator;
 import io.netty.channel.RecvByteBufAllocator;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.socket.SocketChannelConfig;
-import org.xnio.Options;
 
 
 /**
@@ -134,7 +136,7 @@ final class XnioSocketChannelConfig extends DefaultChannelConfig implements Sock
         return this;
     }
 
-    @Override
+    @Override @Deprecated
     public SocketChannelConfig setMaxMessagesPerRead(int maxMessagesPerRead) {
         super.setMaxMessagesPerRead(maxMessagesPerRead);
         return this;
@@ -164,7 +166,7 @@ final class XnioSocketChannelConfig extends DefaultChannelConfig implements Sock
         return this;
     }
 
-    @Override
+    @Override @Deprecated
     public SocketChannelConfig setWriteBufferHighWaterMark(int writeBufferHighWaterMark) {
         super.setWriteBufferHighWaterMark(writeBufferHighWaterMark);
         return this;
@@ -176,9 +178,15 @@ final class XnioSocketChannelConfig extends DefaultChannelConfig implements Sock
         return this;
     }
 
-    @Override
+    @Override @Deprecated
     public SocketChannelConfig setWriteBufferLowWaterMark(int writeBufferLowWaterMark) {
         super.setWriteBufferLowWaterMark(writeBufferLowWaterMark);
+        return this;
+    }
+    
+    @Override
+    public SocketChannelConfig setWriteBufferWaterMark(WriteBufferWaterMark writeBufferWaterMark) {
+        super.setWriteBufferWaterMark(writeBufferWaterMark);
         return this;
     }
 

@@ -90,6 +90,11 @@ public final class XnioEventLoopGroup extends AbstractEventExecutorGroup impleme
     }
 
     @Override
+    public ChannelFuture register(ChannelPromise promise) {
+        return register(promise.channel(), promise);
+    }
+
+    @Override
     public ChannelFuture register(Channel channel, ChannelPromise promise) {
         if (channel instanceof IoThreadPowered) {
             IoThreadPowered ch = (IoThreadPowered) channel;

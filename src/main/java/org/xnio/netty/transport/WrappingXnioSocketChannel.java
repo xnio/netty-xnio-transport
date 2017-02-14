@@ -16,23 +16,27 @@
  */
 package org.xnio.netty.transport;
 
-import io.netty.channel.ChannelPromise;
+import java.io.IOException;
+import java.net.SocketAddress;
+
 import org.xnio.Option;
 import org.xnio.StreamConnection;
 import org.xnio.XnioIoThread;
 import org.xnio.channels.AcceptingChannel;
 
-import java.io.IOException;
-import java.net.SocketAddress;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 
 /**
  * {@link AbstractXnioSocketChannel} implementation which allows you to wrap a pre-created XNIO channel.
  *
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
+ * @author Flavia Rainone
  */
 public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel implements IoThreadPowered {
     private final StreamConnection channel;
     private final XnioIoThread thread;
+    private volatile XnioChannelCloseFuture closeFuture;
 
     WrappingXnioSocketChannel(AbstractXnioServerSocketChannel parent, StreamConnection channel) {
         super(parent);
@@ -101,5 +105,25 @@ public final class WrappingXnioSocketChannel extends AbstractXnioSocketChannel i
     @Override
     protected StreamConnection connection() {
         return channel;
+    }
+    
+    @Override
+    public ChannelFuture shutdownInput() {
+        if (closeFuture != null) {
+    		closeFuture = new XnioChannelCloseFuture(this);
+    	}
+    	channel.getSourceChannel().setCloseListener(closeFuture);
+    	try {
+			channel.getSourceChannel().shutdownReads();
+		} catch (IOException e) {
+			closeFuture.setError(e);
+		}
+    	return closeFuture;
+    }
+
+    @Override
+    public ChannelFuture shutdownInput(ChannelPromise channelPromise) {
+    	closeFuture = new XnioChannelPromiseCloseFuture(this, channelPromise);
+    	return shutdownInput();
     }
 }
