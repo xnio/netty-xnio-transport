@@ -15,7 +15,7 @@
   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
   KIND, either express or implied.  See the License for the
   specific language governing permissions and limitations
-  under the License.    
+  under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
@@ -23,7 +23,7 @@
     <artifactId>jboss-parent</artifactId>
     <version>11</version>
   </parent>
-  
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jboss.xnio.netty</groupId>
   <artifactId>netty-xnio-transport</artifactId>
@@ -51,6 +51,20 @@
      <url>https://github.com/xnio/netty-xnio-transport</url>
     <tag>HEAD</tag>
   </scm>
+
+  <distributionManagement>
+      <repository>
+          <id>jboss-releases-repository</id>
+          <name>JBoss Releases Repository</name>
+          <url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</url>
+      </repository>
+      <snapshotRepository>
+          <id>jboss-snapshots-repository</id>
+          <name>JBoss Snapshots Repository</name>
+          <url>https://repository.jboss.org/nexus/content/repositories/snapshots/</url>
+      </snapshotRepository>
+  </distributionManagement>
+
   <prerequisites>
     <maven>3.0.2</maven>
   </prerequisites>
@@ -68,7 +82,7 @@
       </plugin>
     </plugins>
   </build>
-    
+
   <dependencies>
     <dependency>
       <groupId>io.netty</groupId>
