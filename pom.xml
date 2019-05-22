@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.jboss</groupId>
     <artifactId>jboss-parent</artifactId>
-    <version>16</version>
+    <version>35</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -127,11 +127,11 @@
   </dependencies>
 
   <properties>
-    <target.jdk>1.6</target.jdk>
-    <netty.version>4.1.24.Final</netty.version>
-    <xnio.version>3.5.4.Final</xnio.version>
-    <jboss.logging.version>3.3.1.Final</jboss.logging.version>
-    <junit.version>4.11</junit.version>
+    <target.jdk>1.8</target.jdk>
+    <netty.version>4.1.29.Final</netty.version>
+    <xnio.version>3.7.1.Final</xnio.version>
+    <jboss.logging.version>3.4.0.Final</jboss.logging.version>
+    <junit.version>4.12</junit.version>
   </properties>
 
 
@@ -139,7 +139,7 @@
     <repository>
       <id>jboss-public-repository-group</id>
       <name>JBoss Public Repository Group</name>
-      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
       <layout>default</layout>
       <releases>
         <enabled>true</enabled>
@@ -156,7 +156,7 @@
     <pluginRepository>
       <id>jboss-public-repository-group</id>
       <name>JBoss Public Repository Group</name>
-      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
       <releases>
         <enabled>true</enabled>
        </releases>
