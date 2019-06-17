@@ -128,7 +128,7 @@
 
   <properties>
     <target.jdk>1.8</target.jdk>
-    <netty.version>4.1.29.Final</netty.version>
+    <netty.version>4.1.34.Final</netty.version>
     <xnio.version>3.7.1.Final</xnio.version>
     <jboss.logging.version>3.4.0.Final</jboss.logging.version>
     <junit.version>4.12</junit.version>
