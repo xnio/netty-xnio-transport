@@ -194,6 +194,9 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         // Release the fully written buffers and update the indexes of the partially written buffer.
 
                         for (int i = msgCount; i > 0; i --) {
+                            if (in.current() != null && ! (in.current() instanceof ByteBuf)) {
+                                break;
+                            }
                             final ByteBuf buf = (ByteBuf) in.current();
                             final int readerIndex = buf.readerIndex();
                             final int readableBytes = buf.writerIndex() - readerIndex;
@@ -214,12 +217,9 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                         }
 
                         incompleteWrite(setOpWrite);
-                        break;
                     }
-                    continue;
                 }
             }
-
             Object msg = in.current();
             if (msg == null) {
                 // Wrote all messages.
