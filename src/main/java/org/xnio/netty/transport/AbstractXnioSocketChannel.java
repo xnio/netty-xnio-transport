@@ -151,63 +151,62 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
 
                     int nioBufferCnt = in.nioBufferCount();
                     long expectedWrittenBytes = in.nioBufferSize();
+                    if(nioBufferCnt > 0) {
 
-                    long writtenBytes = 0;
-                    boolean done = false;
-                    boolean setOpWrite = false;
-                    for (int i = config().getWriteSpinCount() - 1; i >= 0; i --) {
-                        final long localWrittenBytes = sink.write(nioBuffers, 0, nioBufferCnt);
-                        if (localWrittenBytes == 0) {
-                            setOpWrite = true;
-                            break;
-                        }
-                        expectedWrittenBytes -= localWrittenBytes;
-                        writtenBytes += localWrittenBytes;
-                        if (expectedWrittenBytes == 0) {
-                            done = true;
-                            break;
-                        }
-                    }
-
-                    if (done) {
-                        // Release all buffers
-                        for (int i = msgCount; i > 0; i --) {
-                            in.remove();
-                        }
-
-                        // Finish the write loop if no new messages were flushed by in.remove().
-                        if (in.isEmpty()) {
-                            connection().getSinkChannel().suspendWrites();
-                            break;
-                        }
-                    } else {
-                        // Did not write all buffers completely.
-                        // Release the fully written buffers and update the indexes of the partially written buffer.
-
-                        for (int i = msgCount; i > 0; i --) {
-                            if (in.current() != null && ! (in.current() instanceof ByteBuf)) {
+                        long writtenBytes = 0;
+                        boolean done = false;
+                        boolean setOpWrite = false;
+                        for (int i = config().getWriteSpinCount() - 1; i >= 0; i--) {
+                            final long localWrittenBytes = sink.write(nioBuffers, 0, nioBufferCnt);
+                            if (localWrittenBytes == 0) {
+                                setOpWrite = true;
                                 break;
                             }
-                            final ByteBuf buf = (ByteBuf) in.current();
-                            final int readerIndex = buf.readerIndex();
-                            final int readableBytes = buf.writerIndex() - readerIndex;
-
-                            if (readableBytes < writtenBytes) {
-                                in.progress(readableBytes);
-                                in.remove();
-                                writtenBytes -= readableBytes;
-                            } else if (readableBytes > writtenBytes) {
-                                buf.readerIndex(readerIndex + (int) writtenBytes);
-                                in.progress(writtenBytes);
-                                break;
-                            } else { // readableBytes == writtenBytes
-                                in.progress(readableBytes);
-                                in.remove();
+                            expectedWrittenBytes -= localWrittenBytes;
+                            writtenBytes += localWrittenBytes;
+                            if (expectedWrittenBytes == 0) {
+                                done = true;
                                 break;
                             }
                         }
 
-                        incompleteWrite(setOpWrite);
+                        if (done) {
+                            // Release all buffers
+                            for (int i = msgCount; i > 0; i--) {
+                                in.remove();
+                            }
+
+                            // Finish the write loop if no new messages were flushed by in.remove().
+                            if (in.isEmpty()) {
+                                connection().getSinkChannel().suspendWrites();
+                                break;
+                            }
+                        } else {
+                            // Did not write all buffers completely.
+                            // Release the fully written buffers and update the indexes of the partially written buffer.
+
+                            for (int i = msgCount; i > 0; i--) {
+                                final ByteBuf buf = (ByteBuf) in.current();
+                                final int readerIndex = buf.readerIndex();
+                                final int readableBytes = buf.writerIndex() - readerIndex;
+
+                                if (readableBytes < writtenBytes) {
+                                    in.progress(readableBytes);
+                                    in.remove();
+                                    writtenBytes -= readableBytes;
+                                } else if (readableBytes > writtenBytes) {
+                                    buf.readerIndex(readerIndex + (int) writtenBytes);
+                                    in.progress(writtenBytes);
+                                    break;
+                                } else { // readableBytes == writtenBytes
+                                    in.progress(readableBytes);
+                                    in.remove();
+                                    break;
+                                }
+                            }
+
+                            incompleteWrite(setOpWrite);
+                        }
                     }
                 }
             }
@@ -274,14 +273,14 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
                     writeSpinCount = config().getWriteSpinCount();
                 }
                 for (int i = writeSpinCount - 1; i >= 0; i --) {
-                    long localFlushedAmount = region.transferTo(sink, region.transfered());
+                    long localFlushedAmount = region.transferTo(sink, region.transferred());
                     if (localFlushedAmount == 0) {
                         setOpWrite = true;
                         break;
                     }
 
                     flushedAmount += localFlushedAmount;
-                    if (region.transfered() >= region.count()) {
+                    if (region.transferred() >= region.count()) {
                         done = true;
                         break;
                     }
