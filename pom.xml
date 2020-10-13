@@ -117,7 +117,7 @@
     <netty.version>4.1.29.Final</netty.version>
     <xnio.version>3.7.1.Final</xnio.version>
     <jboss.logging.version>3.4.0.Final</jboss.logging.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
   </properties>
 
 
