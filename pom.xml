@@ -28,7 +28,7 @@
   <groupId>org.jboss.xnio.netty</groupId>
   <artifactId>netty-xnio-transport</artifactId>
   <name>netty-xnio-transport</name>
-  <version>0.1.9.Final-SNAPSHOT</version>
+  <version>0.1.10.Final-SNAPSHOT</version>
   <inceptionYear>2013</inceptionYear>
   <packaging>jar</packaging>
 
