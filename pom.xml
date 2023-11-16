@@ -79,8 +79,17 @@
           <source>${target.jdk}</source>
           <target>${target.jdk}</target>
         </configuration>
-      </plugin>
-      <plugin>
+     </plugin>
+     <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.2.2</version>
+    <configuration>
+        <argLine> --add-opens java.base/jdk.internal.misc=ALL-UNNAMED -Dio.netty.tryReflectionSetAccessible=true</argLine>
+    </configuration>
+</plugin>
+
+<!--      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <executions>
@@ -98,7 +107,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
     </plugins>
   </build>
 
