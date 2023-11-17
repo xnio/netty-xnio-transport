@@ -21,7 +21,6 @@ import java.util.List;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.handler.ssl.SslContext;
 import io.netty.testsuite.transport.TestsuitePermutation;
 import io.netty.testsuite.transport.socket.SocketSslEchoTest;
 
@@ -31,14 +30,6 @@ import io.netty.testsuite.transport.socket.SocketSslEchoTest;
  * @author Flavia Rainone
  */
 public class XnioSocketSslEchoTest extends SocketSslEchoTest {
-    public XnioSocketSslEchoTest(
-    		SslContext serverCtx, SslContext clientCtx, Renegotiation renegotiation,
-            boolean serverUsesDelegatedTaskExecutor, boolean clientUsesDelegatedTaskExecutor,
-            boolean autoRead, boolean useChunkedWriteHandler, boolean useCompositeByteBuf) {
-        super(serverCtx, clientCtx, renegotiation, serverUsesDelegatedTaskExecutor, clientUsesDelegatedTaskExecutor,
-        		autoRead, useChunkedWriteHandler, useCompositeByteBuf);
-    }
-
     @Override
     protected List<ByteBufAllocator> newAllocators() {
         return XnioTestsuiteUtils.newAllocators(super.newAllocators());
