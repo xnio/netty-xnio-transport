@@ -420,6 +420,7 @@ abstract class AbstractXnioSocketChannel  extends AbstractChannel implements Soc
             RecvByteBufAllocator.Handle allocHandle = this.allocHandle;
             if (allocHandle == null) {
                 this.allocHandle = allocHandle = config.getRecvByteBufAllocator().newHandle();
+                this.allocHandle.reset(config);
             }
 
             ByteBuf byteBuf = null;
