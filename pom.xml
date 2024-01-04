@@ -160,7 +160,7 @@
 
   <properties>
     <target.jdk>1.8</target.jdk>
-    <netty.version>4.1.100.Final</netty.version>
+    <netty.version>4.1.104.Final</netty.version>
     <xnio.version>3.8.12.Final</xnio.version>
     <jboss.logging.version>3.4.0.Final</jboss.logging.version>
     <junit.version>5.9.0</junit.version>
