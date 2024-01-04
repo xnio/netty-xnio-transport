@@ -28,7 +28,7 @@
   <groupId>org.jboss.xnio.netty</groupId>
   <artifactId>netty-xnio-transport</artifactId>
   <name>netty-xnio-transport</name>
-  <version>0.1.10.Final-SNAPSHOT</version>
+  <version>0.1.10.Final</version>
   <inceptionYear>2013</inceptionYear>
   <packaging>jar</packaging>
 
@@ -49,7 +49,7 @@
      <connection>scm:git:git://github.com/xnio/netty-xnio-transport.git</connection>
      <developerConnection>scm:git:https://github.com/xnio/netty-xnio-transport.git</developerConnection>
      <url>https://github.com/xnio/netty-xnio-transport</url>
-    <tag>HEAD</tag>
+    <tag>netty-xnio-transport-0.1.10.Final</tag>
   </scm>
 
   <distributionManagement>
