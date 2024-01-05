@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.jboss</groupId>
     <artifactId>jboss-parent</artifactId>
-    <version>35</version>
+    <version>42</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -82,22 +82,7 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[1.8,9)</version>
-                </requireJavaVersion>
-              </rules>    
-            </configuration>
-          </execution>
-        </executions>
+        <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -159,13 +144,48 @@
   </dependencies>
 
   <properties>
-    <target.jdk>1.8</target.jdk>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <target.jdk>${maven.compiler.target}</target.jdk>
+    <jdk.min.version>1.8</jdk.min.version>
     <netty.version>4.1.104.Final</netty.version>
     <xnio.version>3.8.12.Final</xnio.version>
     <jboss.logging.version>3.4.0.Final</jboss.logging.version>
-    <junit.version>5.9.0</junit.version>
+    <junit.version>5.10.1</junit.version>
   </properties>
 
+  <profiles>
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>            
+      <properties>
+        <jboss.logging.version>3.5.3.Final</jboss.logging.version>
+        <org.bouncycastle.version>1.70</org.bouncycastle.version>
+        <jdk.min.version>11</jdk.min.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcpkix-jdk15on</artifactId>
+          <version>${org.bouncycastle.version}</version>
+          <scope>test</scope>
+          </dependency>
+        </dependencies>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <argLine> --add-opens java.base/jdk.internal.misc=ALL-UNNAMED -Dio.netty.tryReflectionSetAccessible=true</argLine>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+    </profile>
+  </profiles>
 
   <repositories>
     <repository>
