@@ -19,6 +19,7 @@ package org.xnio.netty.buffer;
 import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.internal.PlatformDependent;
+import org.xnio.ByteBufferPool;
 import org.xnio.ByteBufferSlicePool;
 
 /**
@@ -28,9 +29,9 @@ import org.xnio.ByteBufferSlicePool;
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
  */
 public final class XnioByteBufAllocator extends AbstractByteBufAllocator {
-    final ByteBufferSlicePool pool;
+    final ByteBufferPool pool;
 
-    public XnioByteBufAllocator(ByteBufferSlicePool pool) {
+    public XnioByteBufAllocator(ByteBufferPool pool) {
         if (pool == null) {
             throw new NullPointerException("pool");
         }

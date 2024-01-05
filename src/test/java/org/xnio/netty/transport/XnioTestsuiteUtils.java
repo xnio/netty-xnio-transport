@@ -21,13 +21,13 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.testsuite.transport.TestsuitePermutation;
-import org.xnio.ByteBufferSlicePool;
 import org.xnio.netty.buffer.XnioByteBufAllocator;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.xnio.ByteBufferPool;
 
 /**
  *
@@ -45,8 +45,8 @@ final class XnioTestsuiteUtils {
     }
 
     static List<ByteBufAllocator> newAllocators(List<ByteBufAllocator> allocs) {
-        List<ByteBufAllocator> allocators = new ArrayList<ByteBufAllocator>(allocs);
-        allocators.add(new XnioByteBufAllocator(new ByteBufferSlicePool(1024 * 16, 1024 * 32)));
+        List<ByteBufAllocator> allocators = new ArrayList<>(allocs);
+        allocators.add(new XnioByteBufAllocator(ByteBufferPool.LARGE_DIRECT));
         return allocators;
     }
 

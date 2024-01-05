@@ -17,10 +17,10 @@
 package org.xnio.netty.buffer;
 
 import io.netty.util.internal.PlatformDependent;
-import org.xnio.ByteBufferSlicePool;
 import org.xnio.Pooled;
 
 import java.nio.ByteBuffer;
+import org.xnio.ByteBufferPool;
 
 /**
  * @author <a href="mailto:nmaurer@redhat.com">Norman Maurer</a>
@@ -31,10 +31,10 @@ final class XnioByteBufUtil {
         // Utility
     }
 
-    static Pooled<ByteBuffer> allocateDirect(ByteBufferSlicePool pool, int initialCapacity) {
+    static Pooled<ByteBuffer> allocateDirect(ByteBufferPool pool, int initialCapacity) {
         Pooled<ByteBuffer> pooled;
-        if (initialCapacity <= pool.getBufferSize()) {
-            pooled = pool.allocate();
+        if (initialCapacity <= pool.getSize()) {
+            pooled = new PooledByteBuf(pool.allocate());
         } else {
             pooled = new PooledByteBuf(ByteBuffer.allocateDirect(initialCapacity));
         }
