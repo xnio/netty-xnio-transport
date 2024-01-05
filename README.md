@@ -25,3 +25,5 @@ To bootstrap a server use it the same way as other transport implementations. Th
         }
     }
 ```
+
+The branch 0.1.x is there to support Java 8.
